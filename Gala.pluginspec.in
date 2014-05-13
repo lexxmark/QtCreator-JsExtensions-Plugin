@@ -6,7 +6,7 @@
 
 This plugin may be used under the terms of the GNU Lesser General Public License version 2.1 as published by the Free Software Foundation.  Please review the following information to ensure the GNU Lesser General Public License version 2.1 requirements will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.</license>
     <description>Enables creating QtCreator plugins in JavaScript/QML.</description>
-    <url>github</url>
+    <url>https://github.com/lexxmark/GalaPlugin</url>
     $$dependencyList
 </plugin>
 
