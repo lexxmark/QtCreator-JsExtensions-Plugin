@@ -1,0 +1,16 @@
+function createSpacer(space) {
+        var spacer = galaAPI.createQObject("QWidget", modeManager);
+        spacer.minimumHeight = space;
+        return spacer;
+}
+
+function initialize() {
+	// galaAPI.enableDebug();
+
+	var w = galaAPI.createQuickView("Clock.qml", null);
+	modeManager.addWidget(w);
+
+        modeManager.addWidget(createSpacer(10));
+
+	galaAPI.debug("Success");
+}

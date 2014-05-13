@@ -1,0 +1,42 @@
+function saveAllAction() {
+	var docs = editorManager.documents();
+	for (var i = 0; i < docs.length; ++i)
+	{
+		var doc = docs[i];
+		if (doc.isModified()) 
+			doc.save("", false);
+	}
+}
+
+function createSaveAllButton() {
+	var bttn = galaAPI.createQObject("QPushButton", modeManager);
+	bttn.flat = true;
+	bttn.text = "Save All";
+	bttn.focusPolicy = 0;
+	bttn.styleSheet = "QPushButton {color: white; }";
+	bttn.clicked.connect(saveAllAction);
+	return bttn;
+}
+
+function createSpacer(space) {
+	var spacer = galaAPI.createQObject("QWidget", modeManager);
+	spacer.minimumHeight = space;
+	return spacer;
+}
+
+function initialize() {
+	galaAPI.enableDebug();
+
+	modeManager.addWidget(createSaveAllButton());
+        modeManager.addWidget(createSpacer(10));
+
+	galaAPI.debug("Success initialize");
+}
+
+function extensionsInitialized() {
+	galaAPI.debug("Success extensionsInitialized");
+}
+
+function aboutToShutdown() {
+	galaAPI.debug("Success aboutToShutdown");
+}

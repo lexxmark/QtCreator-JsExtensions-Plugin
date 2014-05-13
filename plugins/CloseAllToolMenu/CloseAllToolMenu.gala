@@ -1,0 +1,22 @@
+function closeAllAction() {
+	editorManager.closeAllEditors(true);
+}
+
+function installCloseAllToolMenu() {
+	var action = galaAPI.createQObject("QAction", actionManager);
+	action.text = "Close All";
+	var cmd = actionManager.registerAction(action, "MyPlugin.Action", "Global Context", false);
+	cmd.setDefaultKeySequence("Ctrl+Alt+Meta+C");
+	action.triggered.connect(closeAllAction);
+	var menu = actionManager.createMenu("MyPlugin.Menu");
+	menu.menu().title = "MyPlugin";
+	menu.addAction(cmd, "");
+	actionManager.actionContainer("QtCreator.Menu.Tools").addMenu1(menu, "");
+}
+
+function initialize() {
+	// galaAPI.enableDebug();
+	installCloseAllToolMenu();
+
+	galaAPI.debug("Success");
+}
