@@ -2,16 +2,17 @@
 #include <QMenu>
 #include <QAction>
 #include <QPushButton>
+#include <QCheckBox>
+#include <QRadioButton>
+#include <QToolButton>
+#include <QLabel>
+#include <QLineEdit>
+#include <QMessageBox>
+#include <QToolBar>
+#include <QToolButton>
+
 #include <QtQml>
 #include <QQuickView>
-
-static int modeManagerTypeId = qmlRegisterType<GModeManager>();
-static int commandTypeId = qmlRegisterType<GCommand>();
-static int editorCommandTypeId = qmlRegisterType<Core::IEditor>();
-static int documentCommandTypeId = qmlRegisterType<GDocument>();
-static int actionContainerTypeId = qmlRegisterType<GActionContainer>();
-static int actionManagerTypeId = qmlRegisterType<GActionManager>();
-static int editorManagerTypeId = qmlRegisterType<GEditorManager>();
 
 #define REG_O_FACTORY(ClassName) \
     m_factories.insert(#ClassName, [](QObject* parent)->QObject* { \
@@ -24,12 +25,22 @@ static int editorManagerTypeId = qmlRegisterType<GEditorManager>();
     })
 
 GalaJSPlugin::GalaJSPlugin(QObject* parent)
-    : QObject(parent)
+    : QObject(parent),
+      m_order(0)
 {
     // register creatable objects
     REG_O_FACTORY(QAction);
+
     REG_W_FACTORY(QWidget);
     REG_W_FACTORY(QPushButton);
+    REG_W_FACTORY(QCheckBox);
+    REG_W_FACTORY(QRadioButton);
+    REG_W_FACTORY(QToolButton);
+    REG_W_FACTORY(QLabel);
+    REG_W_FACTORY(QLineEdit);
+    REG_W_FACTORY(QMessageBox);
+    REG_W_FACTORY(QToolBar);
+    REG_W_FACTORY(QToolButton);
 }
 
 GalaJSPlugin::~GalaJSPlugin()
@@ -83,24 +94,11 @@ bool GalaJSPlugin::loadPlugin(QString pluginPath, QString* errorString)
             throw GalaAPIException(tr("Script error: '%1'.").arg(res.toString()));
         }
 
-        // try to find "initialize" function
-        res = m_jsEngine->evaluate(QString::fromLatin1("initialize"));
-        if (res.isError())
+        // try to find "galaPluginOrder" variable
+        res = m_jsEngine->evaluate(QString::fromLatin1("galaPluginOrder"));
+        if (res.isNumber())
         {
-            throw GalaAPIException(tr("Cannot find initialize function: '%1'.").arg(res.toString()));
-        }
-
-        // check "initilize" is a function
-        if (!res.isCallable())
-        {
-            throw GalaAPIException(tr("'initialize' is not a function."));
-        }
-
-        // invoke "initialize" function and check result
-        res = res.call();
-        if (res.isError())
-        {
-            throw GalaAPIException(tr("Initialize function error: '%1'.").arg(res.toString()));
+            m_order = res.toInt();
         }
     }
     catch (const GalaAPIException& exception)
@@ -124,6 +122,9 @@ void GalaJSPlugin::installAPI(QJSEngine* jsEngine)
     QJSValue globalObject = jsEngine->globalObject();
 
     // setup objects to js context
+    GCore* c(new GCore(jsEngine));
+    globalObject.setProperty(QString::fromLatin1("core"), jsEngine->newQObject(c));
+
     GActionManager* am(new GActionManager(jsEngine));
     globalObject.setProperty(QString::fromLatin1("actionManager"), jsEngine->newQObject(am));
 
@@ -154,7 +155,6 @@ QJSValue GalaJSPlugin::createQuickView(QString qmlUrl, QObject* parent)
 
     QSize s = view->initialSize();
     container->setMinimumSize(s);
-    container->setGeometry(0, 0, s.width(), s.height());
 
     QJSValue res = m_jsEngine->toScriptValue(container);
     res.setProperty(QString::fromLatin1("quickView"), m_jsEngine->toScriptValue(view));
@@ -167,12 +167,41 @@ QJSValue GalaJSPlugin::createQObject(QString type, QObject* parent)
     if (it == m_factories.end())
         return QJSValue();
 
-    return m_jsEngine->toScriptValue(it.value()(parent));
+    QObject* object = it.value()(parent);
+
+    return m_jsEngine->toScriptValue(object);
 }
 
 bool GalaJSPlugin::loadAPI(QString libFileName)
 {
-    return false;
+    QLibrary library(libFileName, this);
+    if (!library.load())
+    {
+        debug(tr("Cannot load '%1'.").arg(libFileName));
+        return false;
+    }
+
+    // library should export C function
+    // extern "C" MY_EXPORT bool loadAPI(QJSEngine* jsEngine, QString* errors)
+    typedef bool (*LoadAPIFunction)(QJSEngine*, QString*);
+
+    LoadAPIFunction loadAPIFunc = (LoadAPIFunction)library.resolve("loadAPI");
+    if (!loadAPIFunc)
+    {
+        debug(tr("Cannot resolve 'loadAPI' function."));
+        library.unload();
+        return false;
+    }
+
+    QString errors;
+    if (!loadAPIFunc(m_jsEngine.data(), &errors))
+    {
+        debug(tr("'loadAPI' function failed (%1).").arg(errors));
+        library.unload();
+        return false;
+    }
+
+    return true;
 }
 
 bool GalaJSPlugin::enableDebug()
@@ -197,7 +226,7 @@ bool GalaJSPlugin::enableDebug()
 
 void GalaJSPlugin::debug(QString str)
 {
-    qDebug() << str;
+    qDebug() << tr("%1 : %2").arg(str, m_pluginPath);
     if (m_debugStream)
     {
         *m_debugStream << str << '\n';

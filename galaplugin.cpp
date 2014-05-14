@@ -63,7 +63,7 @@ void GalaPlugin::loadPlugins(const QDir& dir, QString* errorString)
     }
 }
 
-void GalaPlugin::invokePluginsFunction(QString functionName)
+void GalaPlugin::invokePluginsFunction(QString functionName, bool optional)
 {
     for (auto plugin: m_plugins)
     {
@@ -72,16 +72,23 @@ void GalaPlugin::invokePluginsFunction(QString functionName)
 
         try
         {
-            // try to find  function
+            // try to find function
             QJSValue res = engine->evaluate(functionName);
             if (res.isError())
             {
+                if (!optional)
+                {
+                    plugin->enableDebug();
+                    plugin->debug(tr("Cannot find '%1' function.").arg(functionName));
+                }
                 continue;
             }
 
             // check functionName is a function
             if (!res.isCallable())
             {
+                if (!optional)
+                    plugin->enableDebug();
                 plugin->debug(tr("'%1' is not a function.").arg(functionName));
                 continue;
             }
@@ -90,12 +97,16 @@ void GalaPlugin::invokePluginsFunction(QString functionName)
             res = res.call();
             if (res.isError())
             {
+                if (!optional)
+                    plugin->enableDebug();
                 plugin->debug(tr("'%1' function error: '%2'.").arg(functionName, res.toString()));
                 continue;
             }
         }
         catch (...)
         {
+            if (!optional)
+                plugin->enableDebug();
             plugin->debug(tr("Unhandeled exception while calling '%1' function.").arg(functionName));
         }
     }
@@ -145,6 +156,13 @@ bool GalaPlugin::initialize(const QStringList &arguments, QString *errorString)
         *errorString += tr("\nCannot find any Gala plugin in '%1'.").arg(pluginSpec()->location());
         return false;
     }
+
+    // sort plugins
+    std::sort(m_plugins.begin(), m_plugins.end(), [](GalaJSPlugin* left, GalaJSPlugin* right) {
+        return left->order() < right->order();
+    });
+
+    invokePluginsFunction(QString::fromLatin1("initialize"));
 
     return true;
 }

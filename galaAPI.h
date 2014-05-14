@@ -8,12 +8,14 @@
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/modemanager.h>
 #include <coreplugin/imode.h>
+#include <coreplugin/icore.h>
 #include <coreplugin/editormanager/ieditor.h>
 
 #include <QJSEngine>
 #include <QQmlError>
 #include <QtGlobal>
 #include <QMenuBar>
+#include <QStatusBar>
 #include <QTextStream>
 
 #include <QMap>
@@ -46,14 +48,95 @@ protected:
     QJSEngine* m_jsEngine;
 };
 
+class GCore: public GWrapper
+{
+    Q_OBJECT
+
+public:
+    GCore(QJSEngine* jsEngine)
+        : GWrapper(jsEngine),
+          m_owner(Core::ICore::instance())
+    {
+    }
+    ~GCore() {}
+
+    Core::ICore* owner1() { return m_owner; }
+
+public slots:
+    QJSValue owner() { return wrapObject(m_owner); }
+
+/*
+    static void showNewItemDialog(const QString &title,
+                                  const QList<IWizard *> &wizards,
+                                  const QString &defaultLocation = QString(),
+                                  const QVariantMap &extraVariables = QVariantMap());
+*/
+    bool showOptionsDialog(QString group, QString page, QWidget *parent) { return m_owner->showOptionsDialog(str2id(group), str2id(page), parent); }
+    QString msgShowOptionsDialog() { return m_owner->msgShowOptionsDialog(); }
+
+    bool showWarningWithOptions(QString title, QString text,
+                                   QString details/* = QString()*/,
+                                   QString settingsCategory/* = Id()*/,
+                                   QString settingsId/* = Id()*/,
+                                   QWidget *parent/* = 0*/)
+    {
+        return m_owner->showWarningWithOptions(title, text, details, str2id(settingsCategory), str2id(settingsId), parent);
+    }
+
+    //static QSettings *settings(QSettings::Scope scope = QSettings::UserScope);
+
+    //static SettingsDatabase *settingsDatabase();
+    //static QPrinter *printer();
+    QString userInterfaceLanguage() { return m_owner->userInterfaceLanguage(); }
+
+    QString resourcePath() { return m_owner->resourcePath(); }
+    QString userResourcePath() { return m_owner->userResourcePath(); }
+    QString documentationPath() { return m_owner->documentationPath(); }
+    QString libexecPath() { return m_owner->libexecPath(); }
+
+    QString versionString() { return m_owner->versionString(); }
+    QString buildCompatibilityString() { return m_owner->buildCompatibilityString(); }
+
+    QJSValue mainWindow() { return m_jsEngine->toScriptValue(m_owner->mainWindow()); }
+    QJSValue dialogParent() { return m_jsEngine->toScriptValue(m_owner->dialogParent()); }
+    QJSValue statusBar() { return m_jsEngine->toScriptValue(m_owner->statusBar()); }
+    /* Raises and activates the window for the widget. This contains workarounds for X11. */
+    //static void raiseWindow(QWidget *widget);
+
+    //static IContext *currentContextObject();
+    // Adds and removes additional active contexts, these contexts are appended
+    // to the currently active contexts.
+    //static void updateAdditionalContexts(const Context &remove, const Context &add);
+    //static void addContextObject(IContext *context);
+    //static void removeContextObject(IContext *context);
+/*
+    enum OpenFilesFlags {
+        None = 0,
+        SwitchMode = 1,
+        CanContainLineNumbers = 2,
+         /// Stop loading once the first file fails to load
+        StopOnLoadFail = 4
+    };
+    */
+    void openFiles(const QStringList &fileNames, int flags) { m_owner->openFiles(fileNames, (Core::ICore::OpenFilesFlags)flags); }
+
+    void emitNewItemsDialogRequested() { m_owner->emitNewItemsDialogRequested(); }
+
+    void saveSettings() { m_owner->saveSettings(); }
+
+private:
+    Core::ICore* m_owner;
+};
+
+
 class GDocument : public GWrapper
 {
     Q_OBJECT
 
 public:
     GDocument(QJSEngine* jsEngine, Core::IDocument *owner)
-    : GWrapper(jsEngine),
-      m_owner(owner)
+        : GWrapper(jsEngine),
+          m_owner(owner)
     {
     }
     ~GDocument() {}
@@ -501,6 +584,7 @@ public:
     explicit GalaJSPlugin(QObject* parent = nullptr);
     ~GalaJSPlugin();
 
+    quint32 order() const { return m_order; }
     QJSEngine* jsEngine() { return m_jsEngine.data(); }
     bool loadPlugin(QString pluginPath, QString* errorString);
 
@@ -514,11 +598,16 @@ public slots:
     QJSValue createQuickView(QString qmlUrl, QObject* parent);
     QJSValue createQObject(QString type, QObject* parent);
 
+    QJSValue point(int x, int y) { return m_jsEngine->toScriptValue(QPoint(x, y)); }
+    QJSValue rect(int x, int y, int w, int h) { return m_jsEngine->toScriptValue(QRect(x, y, w, h)); }
+    QJSValue size(int w, int h) { return m_jsEngine->toScriptValue(QSize(w, h)); }
+    QJSValue sizePolicy(int hor, int ver, int type) { return m_jsEngine->toScriptValue(QSizePolicy(QSizePolicy::Policy(hor), QSizePolicy::Policy(ver), QSizePolicy::ControlType(type))); }
 
 private:
     QScopedPointer<QJSEngine> m_jsEngine;
     QMap<QByteArray, std::function<QObject*(QObject*)>> m_factories;
 
+    qint32 m_order;
     QString m_pluginPath;
     QScopedPointer<QTextStream> m_debugStream;
 };

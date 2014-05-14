@@ -29,7 +29,7 @@ private slots:
 
 private:
     void loadPlugins(const QDir& dir, QString* errorString);
-    void invokePluginsFunction(QString functionName);
+    void invokePluginsFunction(QString functionName, bool optional = true);
 
     QList<GalaJSPlugin*> m_plugins;
 };
