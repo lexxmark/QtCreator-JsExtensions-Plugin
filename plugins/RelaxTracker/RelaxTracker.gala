@@ -1,5 +1,4 @@
-var galaPluginOrder = 1;
-var galaPluginDisable = true;
+var galaPluginOrder = -1;
 
 function createSpacer(space) {
     var spacer = galaAPI.createQObject("QWidget", modeManager);
@@ -8,12 +7,7 @@ function createSpacer(space) {
 }
 
 function initialize() {
-	// galaAPI.enableDebug();
-
-    var w = galaAPI.createQuickView("Clock.qml", modeManager);
+    var w = galaAPI.createQuickView("RelaxBox.qml", modeManager);
     modeManager.addWidget(w);
-
     modeManager.addWidget(createSpacer(10));
-
-	galaAPI.debug("Success");
 }

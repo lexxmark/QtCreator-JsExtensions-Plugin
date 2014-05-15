@@ -14,6 +14,16 @@
 #include <QtQml>
 #include <QQuickView>
 
+static int coreTypeId = qmlRegisterType<GCore>();
+static int messageManagerTypeId = qmlRegisterType<GMessageManager>();
+static int modeManagerTypeId = qmlRegisterType<GModeManager>();
+static int commandTypeId = qmlRegisterType<GCommand>();
+static int editorCommandTypeId = qmlRegisterType<Core::IEditor>();
+static int documentCommandTypeId = qmlRegisterType<GDocument>();
+static int actionContainerTypeId = qmlRegisterType<GActionContainer>();
+static int actionManagerTypeId = qmlRegisterType<GActionManager>();
+static int editorManagerTypeId = qmlRegisterType<GEditorManager>();
+
 #define REG_O_FACTORY(ClassName) \
     m_factories.insert(#ClassName, [](QObject* parent)->QObject* { \
         return new ClassName(parent); \
@@ -26,7 +36,8 @@
 
 GalaJSPlugin::GalaJSPlugin(QObject* parent)
     : QObject(parent),
-      m_order(0)
+      m_order(0),
+      m_isDisabled(false)
 {
     // register creatable objects
     REG_O_FACTORY(QAction);
@@ -68,8 +79,9 @@ bool GalaJSPlugin::loadPlugin(QString pluginPath, QString* errorString)
 
     try
     {
-        // save plugin path
+        // save plugin path and name
         m_pluginPath = pluginPath;
+        m_pluginName = QFileInfo(m_pluginPath).fileName();
 
         // open plugin file
         QFile scriptFile(pluginPath);
@@ -85,13 +97,20 @@ bool GalaJSPlugin::loadPlugin(QString pluginPath, QString* errorString)
 
         // prepare java script engine
         m_jsEngine.reset(new QJSEngine());
-        installAPI(m_jsEngine.data());
+        installJsContext(m_jsEngine.data());
 
         // load script
         QJSValue res = m_jsEngine->evaluate(contents, pluginPath);
         if (res.isError())
         {
             throw GalaAPIException(tr("Script error: '%1'.").arg(res.toString()));
+        }
+
+        // try to find "galaPluginDisable" variable
+        res = m_jsEngine->evaluate(QString::fromLatin1("galaPluginDisable"));
+        if (res.isBool())
+        {
+            m_isDisabled = res.toBool();
         }
 
         // try to find "galaPluginOrder" variable
@@ -117,13 +136,16 @@ bool GalaJSPlugin::loadPlugin(QString pluginPath, QString* errorString)
     return true;
 }
 
-void GalaJSPlugin::installAPI(QJSEngine* jsEngine)
+void GalaJSPlugin::installJsContext(QJSEngine* jsEngine)
 {
     QJSValue globalObject = jsEngine->globalObject();
 
     // setup objects to js context
     GCore* c(new GCore(jsEngine));
     globalObject.setProperty(QString::fromLatin1("core"), jsEngine->newQObject(c));
+
+    GMessageManager* msm(new GMessageManager(jsEngine));
+    globalObject.setProperty(QString::fromLatin1("messageManager"), jsEngine->newQObject(msm));
 
     GActionManager* am(new GActionManager(jsEngine));
     globalObject.setProperty(QString::fromLatin1("actionManager"), jsEngine->newQObject(am));
@@ -137,9 +159,35 @@ void GalaJSPlugin::installAPI(QJSEngine* jsEngine)
     globalObject.setProperty(QString::fromLatin1("galaAPI"), jsEngine->toScriptValue(static_cast<QObject*>(this)));
 }
 
+void GalaJSPlugin::installQmlContext(QQmlEngine* qmlEngine)
+{
+    QQmlContext* context = qmlEngine->rootContext();
+
+    // setup objects to qml context
+    QObject* c(new GCore(qmlEngine));
+    context->setContextProperty(QString::fromLatin1("core"), c);
+
+    QObject* msm(new GMessageManager(qmlEngine));
+    context->setContextProperty(QString::fromLatin1("messageManager"), msm);
+
+    QObject* am(new GActionManager(qmlEngine));
+    context->setContextProperty(QString::fromLatin1("actionManager"), am);
+
+    QObject* em(new GEditorManager(qmlEngine));
+    context->setContextProperty(QString::fromLatin1("editorManager"), em);
+
+    QObject* mm(new GModeManager(qmlEngine));
+    context->setContextProperty(QString::fromLatin1("modeManager"), mm);
+
+    context->setContextProperty(QString::fromLatin1("galaAPI"), static_cast<QObject*>(this));
+}
+
 QJSValue GalaJSPlugin::createQuickView(QString qmlUrl, QObject* parent)
 {
-    QQuickView *view = new QQuickView();
+    QQmlEngine* qmlEngine = new QQmlEngine(this);
+    installQmlContext(qmlEngine);
+
+    QQuickView *view = new QQuickView(qmlEngine, nullptr);
     view->setObjectName(QString::fromLatin1("quickView"));
     QWidget *container = QWidget::createWindowContainer(view, qobject_cast<QWidget*>(parent));
     container->setFocusPolicy(Qt::TabFocus);
@@ -226,7 +274,7 @@ bool GalaJSPlugin::enableDebug()
 
 void GalaJSPlugin::debug(QString str)
 {
-    qDebug() << tr("%1 : %2").arg(str, m_pluginPath);
+    qDebug() << tr("%1 : %2").arg(m_pluginName, str);
     if (m_debugStream)
     {
         *m_debugStream << str << '\n';

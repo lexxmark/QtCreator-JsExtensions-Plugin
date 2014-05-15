@@ -7,11 +7,12 @@
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/modemanager.h>
+#include <coreplugin/messagemanager.h>
 #include <coreplugin/imode.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/editormanager/ieditor.h>
 
-#include <QJSEngine>
+#include <QQmlEngine>
 #include <QQmlError>
 #include <QtGlobal>
 #include <QMenuBar>
@@ -126,6 +127,40 @@ public slots:
 
 private:
     Core::ICore* m_owner;
+};
+
+class GMessageManager: public GWrapper
+{
+    Q_OBJECT
+
+public:
+    GMessageManager(QJSEngine* jsEngine)
+        : GWrapper(jsEngine),
+          m_owner(qobject_cast<Core::MessageManager*>(Core::MessageManager::instance()))
+    {
+    }
+    ~GMessageManager() {}
+
+    Core::MessageManager* owner1() { return m_owner; }
+
+public slots:
+    QJSValue owner() { return wrapObject(m_owner); }
+
+    void showOutputPane() { m_owner->showOutputPane(); }
+/*
+    enum PrintToOutputPaneFlag {
+        NoModeSwitch   = IOutputPane::NoModeSwitch,
+        ModeSwitch     = IOutputPane::ModeSwitch,
+        WithFocus      = IOutputPane::WithFocus,
+        EnsureSizeHint = IOutputPane::EnsureSizeHint,
+        Silent         = 256,
+        Flash          = 512
+    };
+*/
+    void write(QString text, int flags) { m_owner->write(text, (Core::MessageManager::PrintToOutputPaneFlags)flags); }
+
+private:
+    Core::MessageManager* m_owner;
 };
 
 
@@ -584,11 +619,14 @@ public:
     explicit GalaJSPlugin(QObject* parent = nullptr);
     ~GalaJSPlugin();
 
-    quint32 order() const { return m_order; }
+    qint32 order() const { return m_order; }
+    bool isDisabled() const { return m_isDisabled; }
+
     QJSEngine* jsEngine() { return m_jsEngine.data(); }
     bool loadPlugin(QString pluginPath, QString* errorString);
 
-    void installAPI(QJSEngine* jsEngine);
+    void installJsContext(QJSEngine* jsEngine);
+    void installQmlContext(QQmlEngine* qmlEngine);
 
 public slots:
     bool loadAPI(QString libFileName);
@@ -608,7 +646,9 @@ private:
     QMap<QByteArray, std::function<QObject*(QObject*)>> m_factories;
 
     qint32 m_order;
+    bool m_isDisabled;
     QString m_pluginPath;
+    QString m_pluginName;
     QScopedPointer<QTextStream> m_debugStream;
 };
 

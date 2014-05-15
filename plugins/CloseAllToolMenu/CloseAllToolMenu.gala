@@ -1,5 +1,17 @@
 function closeAllAction() {
 	editorManager.closeAllEditors(true);
+
+    /*
+    var msgBox = galaAPI.createQObject("QMessageBox", core.dialogParent());
+
+    msgBox.modal = true;
+    msgBox.windowTitle = "Window title";
+    msgBox.text = "Text";
+    msgBox.detailedText = "Detailed text";
+    msgBox.exec();
+    */
+
+    //core.showWarningWithOptions("Title", "Main text", "Details", "", "", null);
 }
 
 function installCloseAllToolMenu() {

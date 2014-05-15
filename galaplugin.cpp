@@ -56,8 +56,11 @@ void GalaPlugin::loadPlugins(const QDir& dir, QString* errorString)
             }
             else
             {
-                // save plugin
-                m_plugins.append(galaPlugin.take());
+                if (!galaPlugin->isDisabled())
+                {
+                    // save plugin
+                    m_plugins.append(galaPlugin.take());
+                }
             }
         }
     }
