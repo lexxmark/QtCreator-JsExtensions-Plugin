@@ -1,5 +1,5 @@
 #GalaPlugin
-QtCreator plugin which enables writting plugins using JavaScript/QML
+QtCreator plugin enables writting plugins using JavaScript/QML
 #Overview
 This plugin allows esily write simple additions to QtCreator called gala plugins (*.gala files).
 Gala plugin file is a JavaScript file with the most QtCreator API avaliable there.
@@ -46,4 +46,4 @@ In addition to singleton objects there are wrappers for some other classes:
 2. Core::Command
 3. Core::IDocument
 
-**NOTE: Clocks plugin was disabled by default because two parallel QML windows with animations will lead to crash see [QTBUG-38221](https://bugreports.qt-project.org/browse/QTBUG-38221)**
+**NOTE: Clocks plugin was disabled by default because of two parallel QML windows with animations will lead to crash see [QTBUG-38221](https://bugreports.qt-project.org/browse/QTBUG-38221)**
