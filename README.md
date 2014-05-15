@@ -9,7 +9,7 @@ You can get precompiled plugin for Linux(Ubuntu) [here](https://github.com/lexxm
 Here is a screenshot of the Demo gala plugins:
 ![Demo_screenshot_linux](img/Demo.png)
 
-You can see 4 additional elements on the mode panel:
+You can see 4 additional elements on the mode panel (left side):
 
 1. Green box with "Work" label is a [RelaxTracker](https://github.com/lexxmark/GalaPlugin/tree/master/plugins/RelaxTracker). This is QQuickView window which periodically flashes with red box and label "Break" (to remind user to have a break).
 2. "Close All" button closes all opened documents [see](https://github.com/lexxmark/GalaPlugin/blob/master/plugins/CloseAllBttn/CloseAllBttn.gala).
@@ -45,3 +45,5 @@ In addition to singleton objects there are wrappers for some other classes:
 1. Core::ActionContainer
 2. Core::Command
 3. Core::IDocument
+
+**NOTE: Clocks plugin was disabled by default because two parallel QML windows with animations will lead to crash see [QTBUG-38221](https://bugreports.qt-project.org/browse/QTBUG-38221)**
