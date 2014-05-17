@@ -50,6 +50,9 @@ QTC_PLUGIN_RECOMMENDS += \
 
 include($$QTCREATOR_SOURCES/src/qtcreatorplugin.pri)
 
+# make life easier
+DEFINES -= QT_NO_CAST_FROM_ASCII
+
 # copy Gala plugins
 copy_plugins.commands = $(COPY_DIR) $$PWD/plugins $$DESTDIR
 first.depends = $(first) copy_plugins

@@ -24,10 +24,6 @@ function createSpacer(space) {
 }
 
 function initialize() {
-//    galaAPI.enableDebug();
-
     modeManager.addWidget(createCloseAllButton());
     modeManager.addWidget(createSpacer(10));
-
-    galaAPI.debug("Success");
 }

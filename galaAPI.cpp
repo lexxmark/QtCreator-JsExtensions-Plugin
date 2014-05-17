@@ -37,7 +37,9 @@ static int editorManagerTypeId = qmlRegisterType<GEditorManager>();
 GalaJSPlugin::GalaJSPlugin(QObject* parent)
     : QObject(parent),
       m_order(0),
-      m_isDisabled(false)
+      m_isDisabled(false),
+      m_trace(false),
+      m_debugIndent(0)
 {
     // register creatable objects
     REG_O_FACTORY(QAction);
@@ -56,7 +58,8 @@ GalaJSPlugin::GalaJSPlugin(QObject* parent)
 
 GalaJSPlugin::~GalaJSPlugin()
 {
-
+    // first of all delete JS engine
+    m_jsEngine.reset();
 }
 
 class GalaAPIException
@@ -73,7 +76,7 @@ bool GalaJSPlugin::loadPlugin(QString pluginPath, QString* errorString)
 {
     if (!m_jsEngine.isNull())
     {
-        *errorString = tr("GalaPlugin is initialized already.");
+        *errorString = "GalaPlugin is initialized already.";
         return false;
     }
 
@@ -87,7 +90,7 @@ bool GalaJSPlugin::loadPlugin(QString pluginPath, QString* errorString)
         QFile scriptFile(pluginPath);
         if (!scriptFile.open(QIODevice::ReadOnly))
         {
-            throw GalaAPIException(tr("Cannot open file."));
+            throw GalaAPIException("Cannot open file.");
         }
 
         // read script
@@ -103,32 +106,39 @@ bool GalaJSPlugin::loadPlugin(QString pluginPath, QString* errorString)
         QJSValue res = m_jsEngine->evaluate(contents, pluginPath);
         if (res.isError())
         {
-            throw GalaAPIException(tr("Script error: '%1'.").arg(res.toString()));
+            throw GalaAPIException(QString("Script error: '%1'.").arg(res.toString()));
         }
 
         // try to find "galaPluginDisable" variable
-        res = m_jsEngine->evaluate(QString::fromLatin1("galaPluginDisable"));
+        res = m_jsEngine->evaluate("galaPluginDisable");
         if (res.isBool())
         {
             m_isDisabled = res.toBool();
         }
 
         // try to find "galaPluginOrder" variable
-        res = m_jsEngine->evaluate(QString::fromLatin1("galaPluginOrder"));
+        res = m_jsEngine->evaluate("galaPluginOrder");
         if (res.isNumber())
         {
             m_order = res.toInt();
         }
+
+        // try to find "galaPluginTrace" variable
+        res = m_jsEngine->evaluate("galaPluginTrace");
+        if (res.isBool())
+        {
+            m_trace = res.toBool();
+        }
     }
     catch (const GalaAPIException& exception)
     {
-        *errorString = tr("%1\nScript file: '%2'").arg(exception.error, pluginPath);
+        *errorString = QString("%1\nScript file: '%2'").arg(exception.error, pluginPath);
         m_jsEngine.reset();
         return false;
     }
     catch (...)
     {
-        *errorString = tr("Unhandled exception in plugin '%1'.").arg(pluginPath);
+        *errorString = QString("Unhandled exception in plugin '%1'.").arg(pluginPath);
         m_jsEngine.reset();
         return false;
     }
@@ -140,47 +150,64 @@ void GalaJSPlugin::installJsContext(QJSEngine* jsEngine)
 {
     QJSValue globalObject = jsEngine->globalObject();
 
+    GContext gContext;
+    gContext.plugin = this;
+    gContext.jsEngine = jsEngine;
+
     // setup objects to js context
-    GCore* c(new GCore(jsEngine));
-    globalObject.setProperty(QString::fromLatin1("core"), jsEngine->newQObject(c));
+    GCore* c(new GCore(gContext));
+    globalObject.setProperty("core", jsEngine->newQObject(c));
 
-    GMessageManager* msm(new GMessageManager(jsEngine));
-    globalObject.setProperty(QString::fromLatin1("messageManager"), jsEngine->newQObject(msm));
+    GMessageManager* msm(new GMessageManager(gContext));
+    globalObject.setProperty("messageManager", jsEngine->newQObject(msm));
 
-    GActionManager* am(new GActionManager(jsEngine));
-    globalObject.setProperty(QString::fromLatin1("actionManager"), jsEngine->newQObject(am));
+    GActionManager* am(new GActionManager(gContext));
+    globalObject.setProperty("actionManager", jsEngine->newQObject(am));
 
-    GEditorManager* em(new GEditorManager(jsEngine));
-    globalObject.setProperty(QString::fromLatin1("editorManager"), jsEngine->newQObject(em));
+    GEditorManager* em(new GEditorManager(gContext));
+    globalObject.setProperty("editorManager", jsEngine->newQObject(em));
 
-    GModeManager* mm(new GModeManager(jsEngine));
-    globalObject.setProperty(QString::fromLatin1("modeManager"), jsEngine->newQObject(mm));
+    GModeManager* mm(new GModeManager(gContext));
+    globalObject.setProperty("modeManager", jsEngine->newQObject(mm));
 
-    globalObject.setProperty(QString::fromLatin1("galaAPI"), jsEngine->toScriptValue(static_cast<QObject*>(this)));
+    globalObject.setProperty("galaAPI", jsEngine->toScriptValue(static_cast<QObject*>(this)));
 }
 
 void GalaJSPlugin::installQmlContext(QQmlEngine* qmlEngine)
 {
     QQmlContext* context = qmlEngine->rootContext();
 
+    GContext gContext;
+    gContext.plugin = this;
+    gContext.jsEngine = qmlEngine;
+
     // setup objects to qml context
-    QObject* c(new GCore(qmlEngine));
-    context->setContextProperty(QString::fromLatin1("core"), c);
+    QObject* c(new GCore(gContext));
+    context->setContextProperty("core", c);
 
-    QObject* msm(new GMessageManager(qmlEngine));
-    context->setContextProperty(QString::fromLatin1("messageManager"), msm);
+    QObject* msm(new GMessageManager(gContext));
+    context->setContextProperty("messageManager", msm);
 
-    QObject* am(new GActionManager(qmlEngine));
-    context->setContextProperty(QString::fromLatin1("actionManager"), am);
+    QObject* am(new GActionManager(gContext));
+    context->setContextProperty("actionManager", am);
 
-    QObject* em(new GEditorManager(qmlEngine));
-    context->setContextProperty(QString::fromLatin1("editorManager"), em);
+    QObject* em(new GEditorManager(gContext));
+    context->setContextProperty("editorManager", em);
 
-    QObject* mm(new GModeManager(qmlEngine));
-    context->setContextProperty(QString::fromLatin1("modeManager"), mm);
+    QObject* mm(new GModeManager(gContext));
+    context->setContextProperty("modeManager", mm);
 
-    context->setContextProperty(QString::fromLatin1("galaAPI"), static_cast<QObject*>(this));
+    context->setContextProperty("galaAPI", static_cast<QObject*>(this));
 }
+
+void GalaJSPlugin::changeDebugIndent(qint32 delta)
+{
+    m_debugIndent += delta;
+    Q_ASSERT(m_debugIndent >= 0);
+    if (m_debugIndent < 0)
+        m_debugIndent = 0;
+}
+
 
 QJSValue GalaJSPlugin::createQuickView(QString qmlUrl, QObject* parent)
 {
@@ -188,7 +215,7 @@ QJSValue GalaJSPlugin::createQuickView(QString qmlUrl, QObject* parent)
     installQmlContext(qmlEngine);
 
     QQuickView *view = new QQuickView(qmlEngine, nullptr);
-    view->setObjectName(QString::fromLatin1("quickView"));
+    view->setObjectName("quickView");
     QWidget *container = QWidget::createWindowContainer(view, qobject_cast<QWidget*>(parent));
     container->setFocusPolicy(Qt::TabFocus);
 
@@ -205,7 +232,7 @@ QJSValue GalaJSPlugin::createQuickView(QString qmlUrl, QObject* parent)
     container->setMinimumSize(s);
 
     QJSValue res = m_jsEngine->toScriptValue(container);
-    res.setProperty(QString::fromLatin1("quickView"), m_jsEngine->toScriptValue(view));
+    res.setProperty("quickView", m_jsEngine->toScriptValue(view));
     return res;
 }
 
@@ -274,10 +301,14 @@ bool GalaJSPlugin::enableDebug()
 
 void GalaJSPlugin::debug(QString str)
 {
-    qDebug() << tr("%1 : %2").arg(m_pluginName, str);
+    qDebug() << QString("%1 : %2").arg(m_pluginName, str);
+
+    enableDebug();
+
     if (m_debugStream)
     {
-        *m_debugStream << str << '\n';
+        QString indent(m_debugIndent, QChar::Space);
+        *m_debugStream << indent << str << endl;
     }
 }
 

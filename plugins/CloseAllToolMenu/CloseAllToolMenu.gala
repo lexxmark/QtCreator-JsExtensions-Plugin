@@ -1,6 +1,7 @@
 function closeAllAction() {
 	editorManager.closeAllEditors(true);
 
+    // uncomment to see message box
     /*
     var msgBox = galaAPI.createQObject("QMessageBox", core.dialogParent());
 
@@ -27,8 +28,5 @@ function installCloseAllToolMenu() {
 }
 
 function initialize() {
-	// galaAPI.enableDebug();
-	installCloseAllToolMenu();
-
-	galaAPI.debug("Success");
+    installCloseAllToolMenu();
 }

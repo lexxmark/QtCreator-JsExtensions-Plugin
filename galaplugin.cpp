@@ -18,7 +18,7 @@
 
 using namespace Gala::Internal;
 
-static const QString galaPluginSuffix = QString::fromLatin1("gala");
+static const QString galaPluginSuffix = "gala";
 
 GalaPlugin::GalaPlugin()
 {
@@ -81,7 +81,6 @@ void GalaPlugin::invokePluginsFunction(QString functionName, bool optional)
             {
                 if (!optional)
                 {
-                    plugin->enableDebug();
                     plugin->debug(tr("Cannot find '%1' function.").arg(functionName));
                 }
                 continue;
@@ -90,26 +89,22 @@ void GalaPlugin::invokePluginsFunction(QString functionName, bool optional)
             // check functionName is a function
             if (!res.isCallable())
             {
-                if (!optional)
-                    plugin->enableDebug();
                 plugin->debug(tr("'%1' is not a function.").arg(functionName));
                 continue;
             }
+
+            GContext::TraceRecord trace(plugin, "", 0, functionName.toLatin1().data());
 
             // invoke functionName function and check result
             res = res.call();
             if (res.isError())
             {
-                if (!optional)
-                    plugin->enableDebug();
                 plugin->debug(tr("'%1' function error: '%2'.").arg(functionName, res.toString()));
                 continue;
             }
         }
         catch (...)
         {
-            if (!optional)
-                plugin->enableDebug();
             plugin->debug(tr("Unhandeled exception while calling '%1' function.").arg(functionName));
         }
     }
@@ -165,7 +160,7 @@ bool GalaPlugin::initialize(const QStringList &arguments, QString *errorString)
         return left->order() < right->order();
     });
 
-    invokePluginsFunction(QString::fromLatin1("initialize"));
+    invokePluginsFunction("initialize");
 
     return true;
 }
@@ -176,7 +171,7 @@ void GalaPlugin::extensionsInitialized()
     // In the extensionsInitialized function, a plugin can be sure that all
     // plugins that depend on it are completely initialized.
 
-    invokePluginsFunction(QString::fromLatin1("extensionsInitialized"));
+    invokePluginsFunction("extensionsInitialized");
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag GalaPlugin::aboutToShutdown()
@@ -185,7 +180,7 @@ ExtensionSystem::IPlugin::ShutdownFlag GalaPlugin::aboutToShutdown()
     // Disconnect from signals that are not needed during shutdown
     // Hide UI (if you add UI that is not in the main window directly)
 
-    invokePluginsFunction(QString::fromLatin1("aboutToShutdown"));
+    invokePluginsFunction("aboutToShutdown");
 
     return SynchronousShutdown;
 }

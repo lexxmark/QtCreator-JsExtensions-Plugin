@@ -1,10 +1,14 @@
+var galaPluginTrace= true;
+
 function saveAllAction() {
     var docs = editorManager.documents();
     for (var i = 0; i < docs.length; ++i)
     {
         var doc = docs[i];
         if (doc.isModified())
+        {
             doc.save("", false);
+        }
     }
 }
 
@@ -29,7 +33,6 @@ function createSpacer(space) {
 }
 
 function initialize() {
-    galaAPI.enableDebug();
 
     modeManager.addWidget(createSaveAllButton());
     modeManager.addWidget(createSpacer(10));
