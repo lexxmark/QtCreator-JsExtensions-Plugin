@@ -1,5 +1,5 @@
 var galaPluginOrder = 1;
-//var galaPluginDisable = true;
+var galaPluginDisable = true;
 
 function createSpacer(space) {
     var spacer = galaAPI.createQObject("QWidget", modeManager);

@@ -7,7 +7,7 @@ Rectangle {
     height:30
 
     // values in seconds
-    property int workDuration: 100
+    property int workDuration: 10
     property int relaxDuration: 5
     property int timerPeriod: 1
 

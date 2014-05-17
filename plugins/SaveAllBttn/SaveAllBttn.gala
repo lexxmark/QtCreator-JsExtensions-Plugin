@@ -1,4 +1,4 @@
-var galaPluginTrace= true;
+var galaPluginTrace = true;
 
 function saveAllAction() {
     var docs = editorManager.documents();
