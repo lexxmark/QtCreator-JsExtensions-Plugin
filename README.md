@@ -6,9 +6,11 @@ Gala plugin file is a JavaScript file with the most QtCreator API avaliable ther
 No need to clone QtCreator sources and build them to develop gala plugins.
 You can get precompiled plugin for Linux(Ubuntu) [here](https://github.com/lexxmark/GalaPlugin/blob/master/package/Lexxmark.tar.gz). Just unzip Lexxmark folder to the plugins folder of the QtCreator.
 
-Here is a Demo of the gala plugins:
+Here is a screenshot of the Demo gala plugins:
 
-![Demo_linux](http://youtu.be/GGCcGts3B2I)
+![Demo_screenshot_linux](img/Demo.png)
+
+Video you can see [here](http://youtu.be/GGCcGts3B2I).
 
 You can see 4 additional elements on the mode panel (left side):
 
