@@ -5,7 +5,7 @@ Rectangle {
     id: main
 
     width: 70
-    height: label.height
+    height: label.height+4
     color: "gray"
 
     // see city id at http://weather.yandex.ru/static/cities.xml
@@ -31,6 +31,7 @@ Rectangle {
     Text {
         id: label
         color: "white"
+        anchors.verticalCenter: main.anchors.verticalCenter
         // two empty lines
         text: "\n"
 	}
