@@ -4,7 +4,7 @@ import QtGraphicalEffects 1.0
 Rectangle {
     id: relaxBox
     width: 70
-    height:30
+    height: 30
 
     // values in seconds
     property int workDuration: 10
