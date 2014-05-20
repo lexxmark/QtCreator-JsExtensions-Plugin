@@ -9,7 +9,7 @@ Rectangle {
     color: "gray"
 
     // see city id at http://weather.yandex.ru/static/cities.xml
-    property int cityId: 25563 // Anadyr
+    property int cityId: 7149 // Paris
     // request weather interval
     property int reqInterval: 30 // minutes
 
@@ -18,14 +18,15 @@ Rectangle {
         query: "/forecast/fact"
 
         XmlRole { name: "temp"; query: "temperature/string()" }
-        XmlRole { name: "type"; query: "weather_type_short/string()" }
+        XmlRole { name: "type"; query: "weather_condition/@code/string()" }
+//        XmlRole { name: "type"; query: "weather_type_short/string()" }
     }
 
     XmlListModel {
         id: modelCity
         query: "/forecast"
 
-        XmlRole { name: "city"; query: "@city/string()" }
+        XmlRole { name: "city"; query: "@slug/string()" }
     }
 
     Text {
@@ -33,7 +34,7 @@ Rectangle {
         color: "white"
         anchors.verticalCenter: main.anchors.verticalCenter
         // two empty lines
-        text: "\n"
+        text: "Loading\nweather"
 	}
 
     Timer {
