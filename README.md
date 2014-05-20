@@ -5,7 +5,7 @@ This plugin allows esily write simple additions to QtCreator called gala plugins
 Gala plugin file is a JavaScript file with the most QtCreator API avaliable there.
 No need to clone QtCreator sources and build them to develop gala plugins.
 
-You can get precompiled plugin for Linux(Ubuntu) [here](https://github.com/lexxmark/GalaPlugin/blob/master/package/Lexxmark.tar.gz). Just unzip Lexxmark folder to the plugins folder of the QtCreator.
+You can get precompiled plugin for Linux(Ubuntu) [here](https://github.com/lexxmark/GalaPlugin/blob/master/package/LexxmarkLinux64.tar.gz). Just unzip Lexxmark folder to the QtCreator plugins folder (you may be need to change version of dependency Core in Gala.pluginspec file - valid from 3.0.0 till 3.1.1).
 
 These are screenshots of the gala plugins:
 
