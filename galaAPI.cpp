@@ -226,7 +226,7 @@ QJSValue GalaJSPlugin::createQuickView(QString qmlUrl, QObject* parent)
         qmlUrl = fi.absoluteFilePath();
     }
 
-    view->setSource(QUrl(qmlUrl));
+    view->setSource(QUrl::fromLocalFile(qmlUrl));
 
     QSize s = view->initialSize();
     container->setMinimumSize(s);

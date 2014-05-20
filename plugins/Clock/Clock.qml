@@ -20,7 +20,8 @@ import QtQuick 2.1
 
 Rectangle {
     id: clock
-    width : columnLayout.width
+    //width : columnLayout.width
+    width: 70
     height : columnLayout.height
     property color textColor : "steelblue"
     property int fontSize : 18

@@ -282,8 +282,8 @@ public slots:
 
     QJSValue gOwner() { G_TRACE; return wrapObject(m_owner); }
 
-    void setId(QString id) { G_TRACE; m_owner->setId(str2id(id)); }
-    QString id() const { G_TRACE; return id2str(m_owner->id()); }
+//    void setId(QString id) { G_TRACE; m_owner->setId(str2id(id)); }
+//    QString id() const { G_TRACE; return id2str(m_owner->id()); }
 
     QJSValue save(const QString &fileName /*= QString()*/, bool autoSave/* = false*/)
     {
@@ -445,6 +445,7 @@ public slots:
     {
         G_TRACE;
         QList<Core::IDocument *> documents = m_owner->documentModel()->openedDocuments();
+
         QJSValue array = m_gContext.jsEngine->newArray(documents.size());
 
         for (quint32 i = 0; i < (quint32)documents.size(); ++i)
