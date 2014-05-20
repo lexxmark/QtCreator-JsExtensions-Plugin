@@ -7,18 +7,20 @@ No need to clone QtCreator sources and build them to develop gala plugins.
 
 You can get precompiled plugin for Linux(Ubuntu) [here](https://github.com/lexxmark/GalaPlugin/blob/master/package/Lexxmark.tar.gz). Just unzip Lexxmark folder to the plugins folder of the QtCreator.
 
-Here is a screenshot of the Demo gala plugins:
+These are screenshots of the gala plugins:
 
 ![Demo_screenshot_linux](img/Demo.png)
+![Demo_screenshot_windows](img/DemoWin.png)
 
-Video you can see [here](http://youtu.be/GGCcGts3B2I).
+Video you can see [here](http://youtu.be/GGCcGts3B2I) and [here](http://www.youtube.com/watch?v=Cf32VQE8d6c).
 
-You can see 4 additional elements on the mode panel (left side):
+You can see 5 additional elements on the mode panel (left side):
 
 1. Green box with "Work" label is a [RelaxTracker](https://github.com/lexxmark/GalaPlugin/tree/master/plugins/RelaxTracker). This is QQuickView window which periodically flashes with red box and label "Break" (to remind user to have a break).
 2. "Close All" button closes all opened documents [see](https://github.com/lexxmark/GalaPlugin/blob/master/plugins/CloseAllBttn/CloseAllBttn.gala).
 3. "Save All" button saves all modified documents [see](https://github.com/lexxmark/GalaPlugin/blob/master/plugins/SaveAllBttn/SaveAllBttn.gala).
 4. Digital Clocks box animates current time [see](https://github.com/lexxmark/GalaPlugin/tree/master/plugins/Clock).
+5. Weather box shows current weather conditions [see](https://github.com/lexxmark/GalaPlugin/tree/master/plugins/Weather).
 
 #How to write gala plugins
 At QtCreator startup GalaPlugin scans Lexxmark folder and subfolders for *.gala files. It tries to load each *.gala file, looks for "initialize" function there and executes it. We can write minimal gala plugin like this:
@@ -51,4 +53,4 @@ In addition to singleton objects there are wrappers for some other classes:
 2. Core::Command
 3. Core::IDocument
 
-**NOTE: "Clocks" plugin was disabled by default because of two parallel QML windows with animations will lead to crash see [QTBUG-38221](https://bugreports.qt-project.org/browse/QTBUG-38221)**
+**NOTE: "Clocks" plugin was disabled in linux by default because of two parallel QML windows with animations will lead to crash see [QTBUG-38221](https://bugreports.qt-project.org/browse/QTBUG-38221)**
