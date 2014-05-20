@@ -12,7 +12,7 @@ These are screenshots of the gala plugins:
 ![Demo_screenshot_linux](img/Demo.png)
 ![Demo_screenshot_windows](img/DemoWin.png)
 
-Video you can see [here](http://youtu.be/GGCcGts3B2I) and [here](http://www.youtube.com/watch?v=Cf32VQE8d6c).
+Video you can see [here](http://youtu.be/GGCcGts3B2I) and [here](http://www.youtube.com/watch?v=VHhEt3un_f4).
 
 You can see 5 additional elements on the mode panel (left side):
 
