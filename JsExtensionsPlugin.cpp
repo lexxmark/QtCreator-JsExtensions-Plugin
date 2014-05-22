@@ -135,14 +135,20 @@ bool JsExtensionsPlugin::initialize(const QStringList &arguments, QString *error
 */
 
     // search and load jep plugins
-    QDir pluginDir(pluginSpec()->location());
-    if (!pluginDir.exists())
+    QDir pluginsDir(pluginSpec()->location());
+    if (!pluginsDir.exists())
     {
         *errorString = tr("Plugin dir doesn't exist.");
         return false;
     }
 
-    loadPlugins(pluginDir, errorString);
+    if (!pluginsDir.cd("jep_plugins"))
+    {
+        *errorString = tr("'jep_plugins' sub-dir doesn't exist.");
+        return false;
+    }
+
+    loadPlugins(pluginsDir, errorString);
 
     if (!errorString->isEmpty())
     {
@@ -151,7 +157,7 @@ bool JsExtensionsPlugin::initialize(const QStringList &arguments, QString *error
 
     if (m_plugins.isEmpty())
     {
-        *errorString += tr("\nCannot find any jep plugin in '%1'.").arg(pluginSpec()->location());
+        *errorString += tr("\nCannot find any jep plugin in '%1'.").arg(pluginsDir.absolutePath());
         return false;
     }
 

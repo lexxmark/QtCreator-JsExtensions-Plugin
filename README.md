@@ -5,7 +5,7 @@ Plugin allows easily write simple additions to QtCreator called jep plugins (*.j
 Jep plugin file is a JavaScript file with the most QtCreator API avaliable there.
 No need to clone QtCreator sources and build them to develop jep plugins.
 
-You can get precompiled plugin for Linux(Ubuntu) [here](https://github.com/lexxmark/QtCreator-JsExtensions-Plugin/blob/master/package/LexxmarkLinux64.tar.gz). Just unzip Lexxmark folder to the QtCreator plugins folder (you may be need to change version of dependency Core in JsExtensions.pluginspec file - valid from 3.0.0 till 3.1.1).
+You can get precompiled plugin for Linux(Ubuntu) [here](https://github.com/lexxmark/QtCreator-JsExtensions-Plugin/blob/master/package/LexxmarkLinux64.tar.gz). Just unzip Zhondin folder to the QtCreator plugins folder (you may be need to change version of dependency Core in JsExtensions.pluginspec file - valid range from 3.0.0 till 3.1.1).
 
 These are screenshots of the jep plugins:
 
@@ -16,14 +16,14 @@ Video you can see [here](http://youtu.be/GGCcGts3B2I) and [here](http://www.yout
 
 You can see 5 additional elements on the mode panel (left side):
 
-1. Green box with "Work" label is a [RelaxTracker](https://github.com/lexxmark/QtCreator-JsExtensions-Plugin/tree/master/plugins/RelaxTracker). This is QQuickView window which periodically flashes with red box and label "Break" (to remind user to have a break).
-2. "Close All" button closes all opened documents [see](https://github.com/lexxmark/QtCreator-JsExtensions-Plugin/blob/master/plugins/CloseAllBttn/CloseAllBttn.jep.js).
-3. "Save All" button saves all modified documents [see](https://github.com/lexxmark/QtCreator-JsExtensions-Plugin/blob/master/plugins/SaveAllBttn/SaveAllBttn.jep.js).
-4. Digital Clocks box animates current time [see](https://github.com/lexxmark/QtCreator-JsExtensions-Plugin/tree/master/plugins/Clock).
-5. Weather box shows current weather conditions [see](https://github.com/lexxmark/QtCreator-JsExtensions-Plugin/tree/master/plugins/Weather).
+1. Green box with "Work" label is a [RelaxTracker](https://github.com/lexxmark/QtCreator-JsExtensions-Plugin/tree/master/jep_plugins/RelaxTracker). This is QQuickView window which periodically flashes with red box and label "Break" (to remind user to have a break).
+2. "Close All" button closes all opened documents [see](https://github.com/lexxmark/QtCreator-JsExtensions-Plugin/blob/master/jep_plugins/CloseAllBttn/CloseAllBttn.jep.js).
+3. "Save All" button saves all modified documents [see](https://github.com/lexxmark/QtCreator-JsExtensions-Plugin/blob/master/jep_plugins/SaveAllBttn/SaveAllBttn.jep.js).
+4. Digital Clocks box animates current time [see](https://github.com/lexxmark/QtCreator-JsExtensions-Plugin/tree/master/jep_plugins/Clock).
+5. Weather box shows current weather conditions [see](https://github.com/lexxmark/QtCreator-JsExtensions-Plugin/tree/master/pluginshondin/Weather).
 
 #How to write jep plugins
-At QtCreator startup JsExtensions plugin scans Lexxmark folder and subfolders for *.jep.js files. It tries to load each *.jep.js file, looks for "initialize" function inside and executes it. We can write minimal jep plugin like this:
+At QtCreator startup JsExtensions plugin scans jep_plugins folder and subfolders for *.jep.js files. It tries to load each *.jep.js file, looks for "initialize" function inside and executes it. We can write minimal jep plugin like this:
 
 ```JavaScript
 function initialize() {
