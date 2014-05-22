@@ -5,7 +5,7 @@ Plugin allows easily write simple additions to QtCreator called jep plugins (*.j
 Jep plugin file is a JavaScript file with the most QtCreator API avaliable there.
 No need to clone QtCreator sources and build them to develop jep plugins.
 
-You can get precompiled plugin for Linux(Ubuntu) [here](https://github.com/lexxmark/QtCreator-JsExtensions-Plugin/blob/master/package/LexxmarkLinux64.tar.gz). Just unzip Zhondin folder to the QtCreator plugins folder (you may be need to change version of dependency Core in JsExtensions.pluginspec file - valid range from 3.0.0 till 3.1.1).
+You can get precompiled plugin for Linux(Ubuntu) [here](https://github.com/lexxmark/QtCreator-JsExtensions-Plugin/releases/download/v0.0.1/ZhondinLinux64.tar.gz). Just unzip Zhondin folder to the QtCreator plugins folder (you may be need to change version of dependency Core in JsExtensions.pluginspec file - valid range from 3.0.0 till 3.1.1).
 
 These are screenshots of the jep plugins:
 
