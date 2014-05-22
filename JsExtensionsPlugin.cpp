@@ -1,5 +1,5 @@
-#include "galaplugin.h"
-#include "galaconstants.h"
+#include "JsExtensionsPlugin.h"
+#include "JsExtensionsConstants.h"
 
 #include <coreplugin/icore.h>
 #include <coreplugin/icontext.h>
@@ -16,22 +16,22 @@
 
 #include <QtPlugin>
 
-using namespace Gala::Internal;
+using namespace JsExtensions::Internal;
 
-static const QString galaPluginSuffix = "gala";
+static const QString jepPluginSuffix = "jep.js";
 
-GalaPlugin::GalaPlugin()
+JsExtensionsPlugin::JsExtensionsPlugin()
 {
     // Create your members
 }
 
-GalaPlugin::~GalaPlugin()
+JsExtensionsPlugin::~JsExtensionsPlugin()
 {
     // Unregister objects from the plugin manager's object pool
     // Delete members
 }
 
-void GalaPlugin::loadPlugins(const QDir& dir, QString* errorString)
+void JsExtensionsPlugin::loadPlugins(const QDir& dir, QString* errorString)
 {
     QFileInfoList files = dir.entryInfoList(QDir::NoDotAndDotDot|QDir::Files|QDir::Dirs, QDir::DirsFirst);
     for (auto file: files)
@@ -43,12 +43,12 @@ void GalaPlugin::loadPlugins(const QDir& dir, QString* errorString)
             continue;
         }
 
-        if (file.isFile() && (file.suffix() == galaPluginSuffix))
+        if (file.isFile() && (file.completeSuffix() == jepPluginSuffix))
         {
             // try to load plugin
-            QScopedPointer<GalaJSPlugin> galaPlugin(new GalaJSPlugin(this));
+            QScopedPointer<JsPlugin> jsPlugin(new JsPlugin(this));
             QString pluginErrors;
-            if (!galaPlugin->loadPlugin(file.absoluteFilePath(), &pluginErrors))
+            if (!jsPlugin->loadPlugin(file.absoluteFilePath(), &pluginErrors))
             {
                 // save errors
                 *errorString += QChar::CarriageReturn;
@@ -56,17 +56,17 @@ void GalaPlugin::loadPlugins(const QDir& dir, QString* errorString)
             }
             else
             {
-                if (!galaPlugin->isDisabled())
+                if (!jsPlugin->isDisabled())
                 {
                     // save plugin
-                    m_plugins.append(galaPlugin.take());
+                    m_plugins.append(jsPlugin.take());
                 }
             }
         }
     }
 }
 
-void GalaPlugin::invokePluginsFunction(QString functionName, bool optional)
+void JsExtensionsPlugin::invokePluginsFunction(QString functionName, bool optional)
 {
     for (auto plugin: m_plugins)
     {
@@ -110,7 +110,7 @@ void GalaPlugin::invokePluginsFunction(QString functionName, bool optional)
     }
 }
 
-bool GalaPlugin::initialize(const QStringList &arguments, QString *errorString)
+bool JsExtensionsPlugin::initialize(const QStringList &arguments, QString *errorString)
 {
     // Register objects in the plugin manager's object pool
     // Load settings
@@ -129,12 +129,12 @@ bool GalaPlugin::initialize(const QStringList &arguments, QString *errorString)
     connect(action, SIGNAL(triggered()), this, SLOT(onSettings()));
 
     Core::ActionContainer *menu = Core::ActionManager::createMenu(Constants::MENU_ID);
-    menu->menu()->setTitle(tr("GalaPlugin"));
+    menu->menu()->setTitle(tr("JsExtensionsPlugin"));
     menu->addAction(cmd);
     Core::ActionManager::actionContainer(Core::Constants::M_TOOLS)->addMenu(menu);
 */
 
-    // search and load gala plugins
+    // search and load jep plugins
     QDir pluginDir(pluginSpec()->location());
     if (!pluginDir.exists())
     {
@@ -151,12 +151,12 @@ bool GalaPlugin::initialize(const QStringList &arguments, QString *errorString)
 
     if (m_plugins.isEmpty())
     {
-        *errorString += tr("\nCannot find any Gala plugin in '%1'.").arg(pluginSpec()->location());
+        *errorString += tr("\nCannot find any jep plugin in '%1'.").arg(pluginSpec()->location());
         return false;
     }
 
     // sort plugins
-    std::sort(m_plugins.begin(), m_plugins.end(), [](GalaJSPlugin* left, GalaJSPlugin* right) {
+    std::sort(m_plugins.begin(), m_plugins.end(), [](JsPlugin* left, JsPlugin* right) {
         return left->order() < right->order();
     });
 
@@ -165,7 +165,7 @@ bool GalaPlugin::initialize(const QStringList &arguments, QString *errorString)
     return true;
 }
 
-void GalaPlugin::extensionsInitialized()
+void JsExtensionsPlugin::extensionsInitialized()
 {
     // Retrieve objects from the plugin manager's object pool
     // In the extensionsInitialized function, a plugin can be sure that all
@@ -174,7 +174,7 @@ void GalaPlugin::extensionsInitialized()
     invokePluginsFunction("extensionsInitialized");
 }
 
-ExtensionSystem::IPlugin::ShutdownFlag GalaPlugin::aboutToShutdown()
+ExtensionSystem::IPlugin::ShutdownFlag JsExtensionsPlugin::aboutToShutdown()
 {
     // Save settings
     // Disconnect from signals that are not needed during shutdown
@@ -185,12 +185,12 @@ ExtensionSystem::IPlugin::ShutdownFlag GalaPlugin::aboutToShutdown()
     return SynchronousShutdown;
 }
 
-void GalaPlugin::onSettings()
+void JsExtensionsPlugin::onSettings()
 {
     QMessageBox::information(Core::ICore::mainWindow(),
                              tr("Show settings dialog"),
-                             tr("This is an action from GalaPlugin."));
+                             tr("This is an action from JsExtensions Plugin."));
 }
 
-Q_EXPORT_PLUGIN2(Gala, GalaPlugin)
+Q_EXPORT_PLUGIN2(JsExtensions, JsExtensionsPlugin)
 

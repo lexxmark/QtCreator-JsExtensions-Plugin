@@ -1,14 +1,16 @@
-var galaPluginOrder = -1;
-//var galaPluginDisable = true;
+var pluginOrder = 1;
+var pluginDisable = true;
 
 function createSpacer(space) {
-    var spacer = galaAPI.createQObject("QWidget", modeManager);
+    var spacer = jepAPI.createQObject("QWidget", modeManager);
     spacer.minimumHeight = space;
     return spacer;
 }
 
 function initialize() {
-    var w = galaAPI.createQuickView("RelaxBox.qml", modeManager);
+
+    var w = jepAPI.createQuickView("Clock.qml", modeManager);
     modeManager.addWidget(w);
+
     modeManager.addWidget(createSpacer(10));
 }

@@ -1,24 +1,24 @@
-#ifndef GALA_H
-#define GALA_H
+#ifndef JEP_H
+#define JEP_H
 
 #include <extensionsystem/iplugin.h>
 #include <QList>
 #include <QDir>
 
-#include "gala_global.h"
-#include "galaAPI.h"
+#include "JsExtensions_global.h"
+#include "JepAPI.h"
 
-namespace Gala {
+namespace JsExtensions {
 namespace Internal {
 
-class GalaPlugin : public ExtensionSystem::IPlugin
+class JsExtensionsPlugin : public ExtensionSystem::IPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "Gala.json")
+    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "JsExtensions.json")
 
 public:
-    GalaPlugin();
-    ~GalaPlugin();
+    JsExtensionsPlugin();
+    ~JsExtensionsPlugin();
 
     bool initialize(const QStringList &arguments, QString *errorString);
     void extensionsInitialized();
@@ -31,11 +31,11 @@ private:
     void loadPlugins(const QDir& dir, QString* errorString);
     void invokePluginsFunction(QString functionName, bool optional = true);
 
-    QList<GalaJSPlugin*> m_plugins;
+    QList<JsPlugin*> m_plugins;
 };
 
 } // namespace Internal
-} // namespace Gala
+} // namespace JsExtensions
 
-#endif // GALA_H
+#endif // JEP_H
 

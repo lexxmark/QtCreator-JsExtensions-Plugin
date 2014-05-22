@@ -1,5 +1,5 @@
-#ifndef GALA_API_H
-#define GALA_API_H
+#ifndef JEP_API_H
+#define JEP_API_H
 
 #include <QObject>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -22,15 +22,13 @@
 #include <QMap>
 #include <functional>
 
-//#undef QT_NO_CAST_FROM_ASCII
-
-class GalaJSPlugin: public QObject
+class JsPlugin: public QObject
 {
     Q_OBJECT
 
 public:
-    explicit GalaJSPlugin(QObject* parent = nullptr);
-    ~GalaJSPlugin();
+    explicit JsPlugin(QObject* parent = nullptr);
+    ~JsPlugin();
 
     qint32 order() const { return m_order; }
     bool isDisabled() const { return m_isDisabled; }
@@ -78,7 +76,7 @@ private:
 
 struct GContext
 {
-    GalaJSPlugin* plugin;
+    JsPlugin* plugin;
     QJSEngine* jsEngine;
 
     bool isValid() const
@@ -88,7 +86,7 @@ struct GContext
 
     struct TraceRecord
     {
-        TraceRecord(GalaJSPlugin* plugin, const char* file, int line, const char* func)
+        TraceRecord(JsPlugin* plugin, const char* file, int line, const char* func)
             : plugin(plugin)
         {
             Q_ASSERT(plugin);
@@ -110,7 +108,7 @@ struct GContext
             }
         }
 
-        GalaJSPlugin* plugin;
+        JsPlugin* plugin;
         QString record;
     };
 };
@@ -150,7 +148,6 @@ public:
           m_owner(Core::ICore::instance())
     {
         Q_ASSERT(m_owner);
-//        GContext::TraceRecord trace(m_gContext.plugin, QString("%1:%2:%3").arg(__FILE__).arg(__LINE__).arg(Q_FUNC_INFO));
         G_TRACE;
     }
     ~GCore() {G_TRACE;}
@@ -752,5 +749,5 @@ private:
     Core::ActionManager* m_owner;
 };
 
-#endif // GALA_API_H
+#endif // JEP_API_H
 

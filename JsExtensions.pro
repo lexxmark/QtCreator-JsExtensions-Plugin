@@ -1,16 +1,16 @@
-DEFINES += GALA_LIBRARY
+DEFINES += JEP_LIBRARY
 
 QT += qml quick widgets
 
-# Gala files
+# JsExtensions files
 
-SOURCES += galaplugin.cpp \
-        galaAPI.cpp
+SOURCES += JsExtensionsPlugin.cpp \
+        JepAPI.cpp
 
-HEADERS += galaplugin.h \
-        gala_global.h \
-        galaconstants.h \
-        galaAPI.h
+HEADERS += JsExtensionsPlugin.h \
+        JsExtensions_global.h \
+        JsExtensionsConstants.h \
+        JepAPI.h
 
 # Qt Creator linking
 
@@ -30,13 +30,13 @@ isEmpty(IDE_BUILD_TREE):IDE_BUILD_TREE=/home/alex/Dev/QtCreator/qt-creator-build
 ##    "~/Library/Application Support/QtProject/Qt Creator" on Mac
 # USE_USER_DESTDIR = yes
 
-PROVIDER = Lexxmark
+PROVIDER = Zhondin
 
 ###### If the plugin can be depended upon by other plugins, this code needs to be outsourced to
 ###### <dirname>_dependencies.pri, where <dirname> is the name of the directory containing the
 ###### plugin's sources.
 
-QTC_PLUGIN_NAME = Gala
+QTC_PLUGIN_NAME = JsExtensions
 QTC_LIB_DEPENDS += \
     # nothing here at this time
 
@@ -52,8 +52,8 @@ include($$QTCREATOR_SOURCES/src/qtcreatorplugin.pri)
 # make life easier
 DEFINES -= QT_NO_CAST_FROM_ASCII
 
-# copy Gala plugins
-copy_plugins.commands = $(COPY_DIR) \"$$PWD/plugins\" \"$$DESTDIR\"
+# copy jep plugins
+copy_plugins.commands = $(COPY_DIR) \"$$PWD/jep_plugins\" \"$$DESTDIR\"
 first.depends = $(first) copy_plugins
 export(first.depends)
 export(copy_plugins.commands)

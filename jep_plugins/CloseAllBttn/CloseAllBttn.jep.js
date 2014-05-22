@@ -3,14 +3,14 @@ function closeAllAction() {
 }
 
 function createCloseAllButton() {
-    var bttn = galaAPI.createQObject("QPushButton", null);
+    var bttn = jepAPI.createQObject("QPushButton", null);
     bttn.flat = true;
     bttn.text = "Close All";
     bttn.toolTip = "Close all opened documents";
     bttn.focusPolicy = 0;
     bttn.styleSheet = "QPushButton {color: white; }";
     // disable button minimum width
-    bttn.sizePolicy = galaAPI.sizePolicy(13, 0, 1);
+    bttn.sizePolicy = jepAPI.sizePolicy(13, 0, 1);
 
     bttn.clicked.connect(closeAllAction);
 
@@ -18,7 +18,7 @@ function createCloseAllButton() {
 }
 
 function createSpacer(space) {
-    var spacer = galaAPI.createQObject("QWidget", modeManager);
+    var spacer = jepAPI.createQObject("QWidget", modeManager);
     spacer.minimumHeight = space;
     return spacer;
 }

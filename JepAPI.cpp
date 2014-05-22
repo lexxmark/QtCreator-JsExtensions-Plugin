@@ -1,4 +1,4 @@
-#include "galaAPI.h"
+#include "JepAPI.h"
 #include <QMenu>
 #include <QAction>
 #include <QPushButton>
@@ -34,7 +34,7 @@ static int editorManagerTypeId = qmlRegisterType<GEditorManager>();
         return new ClassName(qobject_cast<QWidget*>(parent)); \
     })
 
-GalaJSPlugin::GalaJSPlugin(QObject* parent)
+JsPlugin::JsPlugin(QObject* parent)
     : QObject(parent),
       m_order(0),
       m_isDisabled(false),
@@ -56,27 +56,27 @@ GalaJSPlugin::GalaJSPlugin(QObject* parent)
     REG_W_FACTORY(QToolButton);
 }
 
-GalaJSPlugin::~GalaJSPlugin()
+JsPlugin::~JsPlugin()
 {
     // first of all delete JS engine
     m_jsEngine.reset();
 }
 
-class GalaAPIException
+class JepAPIException
 {
 public:
-    GalaAPIException(QString error)
+    JepAPIException(QString error)
         : error(error)
     {}
 
     QString error;
 };
 
-bool GalaJSPlugin::loadPlugin(QString pluginPath, QString* errorString)
+bool JsPlugin::loadPlugin(QString pluginPath, QString* errorString)
 {
     if (!m_jsEngine.isNull())
     {
-        *errorString = "GalaPlugin is initialized already.";
+        *errorString = "JepAPI is initialized already.";
         return false;
     }
 
@@ -90,7 +90,7 @@ bool GalaJSPlugin::loadPlugin(QString pluginPath, QString* errorString)
         QFile scriptFile(pluginPath);
         if (!scriptFile.open(QIODevice::ReadOnly))
         {
-            throw GalaAPIException("Cannot open file.");
+            throw JepAPIException("Cannot open file.");
         }
 
         // read script
@@ -106,31 +106,31 @@ bool GalaJSPlugin::loadPlugin(QString pluginPath, QString* errorString)
         QJSValue res = m_jsEngine->evaluate(contents, pluginPath);
         if (res.isError())
         {
-            throw GalaAPIException(QString("Script error: '%1'.").arg(res.toString()));
+            throw JepAPIException(QString("Script error: '%1'.").arg(res.toString()));
         }
 
-        // try to find "galaPluginDisable" variable
-        res = m_jsEngine->evaluate("galaPluginDisable");
+        // try to find "pluginDisable" variable
+        res = m_jsEngine->evaluate("pluginDisable");
         if (res.isBool())
         {
             m_isDisabled = res.toBool();
         }
 
-        // try to find "galaPluginOrder" variable
-        res = m_jsEngine->evaluate("galaPluginOrder");
+        // try to find "pluginOrder" variable
+        res = m_jsEngine->evaluate("pluginOrder");
         if (res.isNumber())
         {
             m_order = res.toInt();
         }
 
-        // try to find "galaPluginTrace" variable
-        res = m_jsEngine->evaluate("galaPluginTrace");
+        // try to find "pluginTrace" variable
+        res = m_jsEngine->evaluate("pluginTrace");
         if (res.isBool())
         {
             m_trace = res.toBool();
         }
     }
-    catch (const GalaAPIException& exception)
+    catch (const JepAPIException& exception)
     {
         *errorString = QString("%1\nScript file: '%2'").arg(exception.error, pluginPath);
         m_jsEngine.reset();
@@ -146,7 +146,7 @@ bool GalaJSPlugin::loadPlugin(QString pluginPath, QString* errorString)
     return true;
 }
 
-void GalaJSPlugin::installJsContext(QJSEngine* jsEngine)
+void JsPlugin::installJsContext(QJSEngine* jsEngine)
 {
     QJSValue globalObject = jsEngine->globalObject();
 
@@ -170,10 +170,10 @@ void GalaJSPlugin::installJsContext(QJSEngine* jsEngine)
     GModeManager* mm(new GModeManager(gContext));
     globalObject.setProperty("modeManager", jsEngine->newQObject(mm));
 
-    globalObject.setProperty("galaAPI", jsEngine->toScriptValue(static_cast<QObject*>(this)));
+    globalObject.setProperty("jepAPI", jsEngine->toScriptValue(static_cast<QObject*>(this)));
 }
 
-void GalaJSPlugin::installQmlContext(QQmlEngine* qmlEngine)
+void JsPlugin::installQmlContext(QQmlEngine* qmlEngine)
 {
     QQmlContext* context = qmlEngine->rootContext();
 
@@ -197,10 +197,10 @@ void GalaJSPlugin::installQmlContext(QQmlEngine* qmlEngine)
     QObject* mm(new GModeManager(gContext));
     context->setContextProperty("modeManager", mm);
 
-    context->setContextProperty("galaAPI", static_cast<QObject*>(this));
+    context->setContextProperty("jepAPI", static_cast<QObject*>(this));
 }
 
-void GalaJSPlugin::changeDebugIndent(qint32 delta)
+void JsPlugin::changeDebugIndent(qint32 delta)
 {
     m_debugIndent += delta;
     Q_ASSERT(m_debugIndent >= 0);
@@ -209,7 +209,7 @@ void GalaJSPlugin::changeDebugIndent(qint32 delta)
 }
 
 
-QJSValue GalaJSPlugin::createQuickView(QString qmlUrl, QObject* parent)
+QJSValue JsPlugin::createQuickView(QString qmlUrl, QObject* parent)
 {
     QQmlEngine* qmlEngine = new QQmlEngine(this);
     installQmlContext(qmlEngine);
@@ -224,9 +224,12 @@ QJSValue GalaJSPlugin::createQuickView(QString qmlUrl, QObject* parent)
     if (fi.isFile())
     {
         qmlUrl = fi.absoluteFilePath();
+        view->setSource(QUrl::fromLocalFile(qmlUrl));
     }
-
-    view->setSource(QUrl::fromLocalFile(qmlUrl));
+    else
+    {
+        view->setSource(QUrl(qmlUrl));
+    }
 
     QSize s = view->initialSize();
     container->setMinimumSize(s);
@@ -236,7 +239,7 @@ QJSValue GalaJSPlugin::createQuickView(QString qmlUrl, QObject* parent)
     return res;
 }
 
-QJSValue GalaJSPlugin::createQObject(QString type, QObject* parent)
+QJSValue JsPlugin::createQObject(QString type, QObject* parent)
 {
     auto it = m_factories.find(type.toLatin1());
     if (it == m_factories.end())
@@ -247,7 +250,7 @@ QJSValue GalaJSPlugin::createQObject(QString type, QObject* parent)
     return m_jsEngine->toScriptValue(object);
 }
 
-bool GalaJSPlugin::loadAPI(QString libFileName)
+bool JsPlugin::loadAPI(QString libFileName)
 {
     QLibrary library(libFileName, this);
     if (!library.load())
@@ -279,7 +282,7 @@ bool GalaJSPlugin::loadAPI(QString libFileName)
     return true;
 }
 
-bool GalaJSPlugin::enableDebug()
+bool JsPlugin::enableDebug()
 {
     if (!m_debugStream.isNull())
         return true;
@@ -299,7 +302,7 @@ bool GalaJSPlugin::enableDebug()
     return true;
 }
 
-void GalaJSPlugin::debug(QString str)
+void JsPlugin::debug(QString str)
 {
     qDebug() << QString("%1 : %2").arg(m_pluginName, str);
 

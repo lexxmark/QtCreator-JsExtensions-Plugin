@@ -1,7 +1,0 @@
-var galaPluginOrder = 2;
-//var galaPluginDisable = true;
-
-function initialize() {
-    var w = galaAPI.createQuickView("Weather.qml", modeManager);
-    modeManager.addWidget(w);
-}
