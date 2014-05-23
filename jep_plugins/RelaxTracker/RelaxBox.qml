@@ -7,8 +7,8 @@ Rectangle {
     height: 30
 
     // values in seconds
-    property int workDuration: 10
-    property int relaxDuration: 5
+    property int workDuration: 10*60
+    property int relaxDuration: 2*60
     property int timerPeriod: 1
 
     property date lastAlarmTime: new Date

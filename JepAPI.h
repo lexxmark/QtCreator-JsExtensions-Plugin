@@ -11,6 +11,7 @@
 #include <coreplugin/imode.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/editormanager/ieditor.h>
+#include <coreplugin/inavigationwidgetfactory.h>
 
 #include <QQmlEngine>
 #include <QQmlError>
@@ -41,6 +42,7 @@ public:
     void installQmlContext(QQmlEngine* qmlEngine);
 
     void changeDebugIndent(qint32 delta);
+    QWidget* createQuickViewWidget(QString qmlUrl, QObject* parent);
 
 public slots:
     bool loadAPI(QString libFileName);
@@ -53,6 +55,8 @@ public slots:
     QJSValue rect(int x, int y, int w, int h) { return m_jsEngine->toScriptValue(QRect(x, y, w, h)); }
     QJSValue size(int w, int h) { return m_jsEngine->toScriptValue(QSize(w, h)); }
     QJSValue sizePolicy(int hor, int ver, int type) { return m_jsEngine->toScriptValue(QSizePolicy(QSizePolicy::Policy(hor), QSizePolicy::Policy(ver), QSizePolicy::ControlType(type))); }
+
+    bool registerNavigationQMLFactory(QString qmlUrl, QString displayName, int priority, QString id, QString activationSequence);
 
 private:
     bool enableDebug();
@@ -748,6 +752,33 @@ public slots:
 private:
     Core::ActionManager* m_owner;
 };
+
+class GNavigationQmlFactory: public Core::INavigationWidgetFactory
+{
+    Q_OBJECT
+
+public:
+    GNavigationQmlFactory(JsPlugin* owner, QString qmlUrl, QString displayName, int priority, QString id, QString activationSequence);
+
+    QString displayName() const { return m_displayName; }
+    int priority() const { return m_priority; }
+    Core::Id id() const { return Core::Id(m_id.toLatin1().constData()); }
+    QKeySequence activationSequence() const { return QKeySequence(m_activationSequence); }
+
+    Core::NavigationView createWidget();
+
+    //void saveSettings(int position, QWidget *widget);
+    //void restoreSettings(int position, QWidget *widget);
+
+private:
+    JsPlugin* m_owner;
+    QString m_qmlUrl;
+    QString m_displayName;
+    int m_priority;
+    QString m_id;
+    QString m_activationSequence;
+};
+
 
 #endif // JEP_API_H
 

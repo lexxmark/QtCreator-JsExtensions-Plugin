@@ -1,5 +1,5 @@
 var pluginOrder = 1;
-var pluginDisable = true;
+//var pluginDisable = true;
 
 function createSpacer(space) {
     var spacer = jepAPI.createQObject("QWidget", modeManager);
@@ -9,8 +9,10 @@ function createSpacer(space) {
 
 function initialize() {
 
-    var w = jepAPI.createQuickView("Clock.qml", modeManager);
-    modeManager.addWidget(w);
+    //var w = jepAPI.createQuickView("Clock.qml", modeManager);
+    //modeManager.addWidget(w);
 
-    modeManager.addWidget(createSpacer(10));
+    //modeManager.addWidget(createSpacer(10));
+
+    jepAPI.registerNavigationQMLFactory("Clock.qml", "Clocks", 0, "", "");
 }

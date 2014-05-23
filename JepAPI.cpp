@@ -14,6 +14,8 @@
 #include <QtQml>
 #include <QQuickView>
 
+#include <extensionsystem/iplugin.h>
+
 static int coreTypeId = qmlRegisterType<GCore>();
 static int messageManagerTypeId = qmlRegisterType<GMessageManager>();
 static int modeManagerTypeId = qmlRegisterType<GModeManager>();
@@ -208,8 +210,7 @@ void JsPlugin::changeDebugIndent(qint32 delta)
         m_debugIndent = 0;
 }
 
-
-QJSValue JsPlugin::createQuickView(QString qmlUrl, QObject* parent)
+QWidget* JsPlugin::createQuickViewWidget(QString qmlUrl, QObject* parent)
 {
     QQmlEngine* qmlEngine = new QQmlEngine(this);
     installQmlContext(qmlEngine);
@@ -234,8 +235,14 @@ QJSValue JsPlugin::createQuickView(QString qmlUrl, QObject* parent)
     QSize s = view->initialSize();
     container->setMinimumSize(s);
 
+    return container;
+}
+
+QJSValue JsPlugin::createQuickView(QString qmlUrl, QObject* parent)
+{
+    QWidget* container = createQuickViewWidget(qmlUrl, parent);
     QJSValue res = m_jsEngine->toScriptValue(container);
-    res.setProperty("quickView", m_jsEngine->toScriptValue(view));
+    //res.setProperty("quickView", m_jsEngine->toScriptValue(view));
     return res;
 }
 
@@ -248,6 +255,34 @@ QJSValue JsPlugin::createQObject(QString type, QObject* parent)
     QObject* object = it.value()(parent);
 
     return m_jsEngine->toScriptValue(object);
+}
+
+GNavigationQmlFactory::GNavigationQmlFactory(JsPlugin* owner, QString qmlUrl, QString displayName, int priority, QString id, QString activationSequence)
+    : m_owner(owner),
+      m_qmlUrl(qmlUrl),
+      m_displayName(displayName),
+      m_priority(priority),
+      m_id(id),
+      m_activationSequence(activationSequence)
+{
+    Q_ASSERT(m_owner);
+}
+
+Core::NavigationView GNavigationQmlFactory::createWidget()
+{
+    Core::NavigationView nv;
+    nv.widget = m_owner->createQuickViewWidget(m_qmlUrl, this);
+    return nv;
+}
+
+bool JsPlugin::registerNavigationQMLFactory(QString qmlUrl, QString displayName, int priority, QString id, QString activationSequence)
+{
+    ExtensionSystem::IPlugin* plugin = qobject_cast<ExtensionSystem::IPlugin*>(parent());
+    if (!plugin)
+        return false;
+
+    plugin->addAutoReleasedObject(new GNavigationQmlFactory(this, qmlUrl, displayName, priority, id, activationSequence));
+    return true;
 }
 
 bool JsPlugin::loadAPI(QString libFileName)
