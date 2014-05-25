@@ -1,4 +1,4 @@
-<plugin name=\"JsExtensions\" version=\"0.0.1\" compatVersion=\"0.0.1\">
+<plugin name=\"JsExtensions\" version=\"0.0.2\" compatVersion=\"0.0.2\">
     <vendor>Alex Zhondin</vendor>
     <copyright>(C) 2014 Alex Zhondin</copyright>
     <license>
