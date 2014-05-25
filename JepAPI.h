@@ -437,14 +437,12 @@ public slots:
     QJSValue visibleEditors()
     {
         G_TRACE;
-        auto editors = m_owner->visibleEditors();
+        QList<Core::IEditor *> editors = m_owner->visibleEditors();
         QJSValue array = m_gContext.jsEngine->newArray(editors.size());
 
         quint32 i = 0;
-        for (auto editor: editors)
-        {
+        foreach (Core::IEditor *editor, editors)
             array.setProperty(i++, m_gContext.jsEngine->toScriptValue(editor));
-        }
         return array;
     }
 
@@ -739,14 +737,12 @@ public slots:
     QJSValue commands()
     {
         G_TRACE;
-        auto commands = m_owner->commands();
+        QList<Core::Command *> commands = m_owner->commands();
         QJSValue array = m_gContext.jsEngine->newArray(commands.size());
 
         quint32 i = 0;
-        for (auto command: commands)
-        {
+        foreach (Core::Command *command, commands)
             array.setProperty(i++, m_gContext.jsEngine->newQObject(new GCommand(m_gContext, command)));
-        }
         return array;
     }
 
