@@ -60,6 +60,9 @@ public slots:
 
     bool registerNavigationWidgetFactory(QJSValue factory, QString displayName, int priority, QString id, QString activationSequence);
 
+    void dumpPluginManagerObjects();
+    void dumpCommands();
+
 private:
     bool enableDebug();
 
@@ -636,7 +639,7 @@ public slots:
 
     QString id() const { G_TRACE; return id2str(m_owner->id()); }
 
-    QAction *action() const { G_TRACE; return m_owner->action(); }
+    QJSValue action() const { G_TRACE; return wrapObject(m_owner->action()); }
     QString context() const
     {
         G_TRACE;

@@ -15,6 +15,7 @@
 #include <QQuickView>
 
 #include <extensionsystem/iplugin.h>
+#include <extensionsystem/pluginmanager.h>
 
 static int coreTypeId = qmlRegisterType<GCore>();
 static int messageManagerTypeId = qmlRegisterType<GMessageManager>();
@@ -287,6 +288,7 @@ GNavigationWidgetFactory::GNavigationWidgetFactory(JsPlugin* owner, QJSValue fac
       m_activationSequence(activationSequence)
 {
     Q_ASSERT(m_owner);
+    setObjectName(QString("JEP_NavigationWidgetFactory_%1").arg(m_displayName));
 }
 
 Core::NavigationView GNavigationWidgetFactory::createWidget()
@@ -335,6 +337,27 @@ bool JsPlugin::registerNavigationWidgetFactory(QJSValue factory, QString display
     plugin->addAutoReleasedObject(new GNavigationWidgetFactory(this, factory, displayName, priority, id, activationSequence));
     return true;
 }
+
+void JsPlugin::dumpPluginManagerObjects()
+{
+    QList<QObject*> objects = ExtensionSystem::PluginManager::allObjects();
+    int i = 0;
+    foreach (QObject* obj, objects)
+    {
+        debug(QString("%1: %2 (%3)").arg(i++).arg(obj->objectName()).arg(obj->metaObject()->className()));
+    }
+}
+
+void JsPlugin::dumpCommands()
+{
+    QList<Core::Command*> commands = Core::ActionManager::commands();
+    int i = 0;
+    foreach (Core::Command* cmd, commands)
+    {
+        debug(QString("%1: <%2> (%3)").arg(i++).arg(cmd->id().toString()).arg(cmd->description()));
+    }
+}
+
 
 bool JsPlugin::loadAPI(QString libFileName)
 {

@@ -15,4 +15,6 @@ function initialize() {
     //modeManager.addWidget(createSpacer(10));
 
     jepAPI.registerNavigationWidgetFactory("Clock.qml", "Clocks", 0, "", "");
+
+    //jepAPI.dumpPluginManagerObjects();
 }
