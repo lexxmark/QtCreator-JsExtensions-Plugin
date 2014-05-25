@@ -2,6 +2,8 @@ DEFINES += JEP_LIBRARY
 
 QT += qml quick widgets
 
+CONFIG += c++11
+
 # JsExtensions files
 
 SOURCES += JsExtensionsPlugin.cpp \

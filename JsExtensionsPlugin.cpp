@@ -34,7 +34,7 @@ JsExtensionsPlugin::~JsExtensionsPlugin()
 void JsExtensionsPlugin::loadPlugins(const QDir& dir, QString* errorString)
 {
     QFileInfoList files = dir.entryInfoList(QDir::NoDotAndDotDot|QDir::Files|QDir::Dirs, QDir::DirsFirst);
-    for (auto file: files)
+    foreach (const QFileInfo &file, files)
     {
         if (file.isDir())
         {
@@ -68,7 +68,7 @@ void JsExtensionsPlugin::loadPlugins(const QDir& dir, QString* errorString)
 
 void JsExtensionsPlugin::invokePluginsFunction(QString functionName, bool optional)
 {
-    for (auto plugin: m_plugins)
+    foreach (JsPlugin *plugin, m_plugins)
     {
         QJSEngine* engine  = plugin->jsEngine();
         Q_ASSERT(engine);
@@ -80,9 +80,7 @@ void JsExtensionsPlugin::invokePluginsFunction(QString functionName, bool option
             if (res.isError())
             {
                 if (!optional)
-                {
                     plugin->debug(tr("Cannot find '%1' function.").arg(functionName));
-                }
                 continue;
             }
 
