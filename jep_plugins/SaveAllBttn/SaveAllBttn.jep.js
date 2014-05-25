@@ -1,4 +1,3 @@
-var pluginTrace = true;
 
 function saveAllAction() {
     var docs = editorManager.documents();

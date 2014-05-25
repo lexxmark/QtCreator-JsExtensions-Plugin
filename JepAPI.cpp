@@ -210,15 +210,14 @@ void JsPlugin::changeDebugIndent(qint32 delta)
         m_debugIndent = 0;
 }
 
-QWidget* JsPlugin::createQuickViewWidget(QString qmlUrl, QObject* parent)
+QPair<QWidget*, QQuickView*> JsPlugin::createQuickViewWidget(QString qmlUrl, QObject* parent)
 {
-    QQmlEngine* qmlEngine = new QQmlEngine(this);
-    installQmlContext(qmlEngine);
+    QPair<QWidget*, QQuickView*> result(nullptr, nullptr);
 
-    QQuickView *view = new QQuickView(qmlEngine, nullptr);
-    view->setObjectName("quickView");
-    QWidget *container = QWidget::createWindowContainer(view, qobject_cast<QWidget*>(parent));
-    container->setFocusPolicy(Qt::TabFocus);
+    QScopedPointer<QQmlEngine> qmlEngine(new QQmlEngine(this));
+    installQmlContext(qmlEngine.data());
+
+    QScopedPointer<QQuickView> view(new QQuickView(qmlEngine.data(), nullptr));
 
     // make absolute file path related to plugin dir
     QFileInfo fi(QFileInfo(m_pluginPath).absolutePath(), qmlUrl);
@@ -232,22 +231,44 @@ QWidget* JsPlugin::createQuickViewWidget(QString qmlUrl, QObject* parent)
         view->setSource(QUrl(qmlUrl));
     }
 
+    if (view->status() == QQuickView::Error)
+    {
+        foreach (const QQmlError& error, view->errors())
+        {
+            debug(error.toString());
+        }
+
+        return result;
+    }
+
+    QScopedPointer<QWidget> container(QWidget::createWindowContainer(view.data(), qobject_cast<QWidget*>(parent)));
+
+    container->setFocusPolicy(Qt::TabFocus);
+
     QSize s = view->initialSize();
     container->setMinimumSize(s);
 
-    return container;
+    qmlEngine.take();
+    result.first = container.take();
+    result.second =view.take();
+
+    return result;
 }
 
 QJSValue JsPlugin::createQuickView(QString qmlUrl, QObject* parent)
 {
-    QWidget* container = createQuickViewWidget(qmlUrl, parent);
-    QJSValue res = m_jsEngine->toScriptValue(container);
-    //res.setProperty("quickView", m_jsEngine->toScriptValue(view));
+    G_TRACE2(this);
+
+    QPair<QWidget*, QQuickView*> result = createQuickViewWidget(qmlUrl, parent);
+    QJSValue res = m_jsEngine->toScriptValue(static_cast<QObject*>(result.first));
+    res.setProperty("quickView", m_jsEngine->toScriptValue(static_cast<QObject*>(result.second)));
     return res;
 }
 
 QJSValue JsPlugin::createQObject(QString type, QObject* parent)
 {
+    G_TRACE2(this);
+
     auto it = m_factories.find(type.toLatin1());
     if (it == m_factories.end())
         return QJSValue();
@@ -257,9 +278,9 @@ QJSValue JsPlugin::createQObject(QString type, QObject* parent)
     return m_jsEngine->toScriptValue(object);
 }
 
-GNavigationQmlFactory::GNavigationQmlFactory(JsPlugin* owner, QString qmlUrl, QString displayName, int priority, QString id, QString activationSequence)
+GNavigationWidgetFactory::GNavigationWidgetFactory(JsPlugin* owner, QJSValue factory, QString displayName, int priority, QString id, QString activationSequence)
     : m_owner(owner),
-      m_qmlUrl(qmlUrl),
+      m_factory(factory),
       m_displayName(displayName),
       m_priority(priority),
       m_id(id),
@@ -268,25 +289,57 @@ GNavigationQmlFactory::GNavigationQmlFactory(JsPlugin* owner, QString qmlUrl, QS
     Q_ASSERT(m_owner);
 }
 
-Core::NavigationView GNavigationQmlFactory::createWidget()
+Core::NavigationView GNavigationWidgetFactory::createWidget()
 {
+    G_TRACE2(m_owner);
+
     Core::NavigationView nv;
-    nv.widget = m_owner->createQuickViewWidget(m_qmlUrl, this);
+    nv.widget = nullptr;
+
+    if (m_factory.isString())
+    {
+        // try load QML view
+        QPair<QWidget*, QQuickView*> result = m_owner->createQuickViewWidget(m_factory.toString(), this);
+        nv.widget = result.first;
+
+        result.second->setResizeMode(QQuickView::SizeRootObjectToView);
+    }
+    else if (m_factory.isCallable())
+    {
+        // try call factory
+        QJSValue res = m_factory.call();
+        if (res.isQObject())
+        {
+            nv.widget = qobject_cast<QWidget*>(res.toQObject());
+        }
+
+        if (!nv.widget)
+        {
+            m_owner->debug("NavigationWidgetFactory: function doesn't return QWidget*.");
+        }
+    }
+    else
+    {
+        m_owner->debug("NavigationWidgetFactory: factory is not string or function.");
+    }
+
     return nv;
 }
 
-bool JsPlugin::registerNavigationQMLFactory(QString qmlUrl, QString displayName, int priority, QString id, QString activationSequence)
+bool JsPlugin::registerNavigationWidgetFactory(QJSValue factory, QString displayName, int priority, QString id, QString activationSequence)
 {
     ExtensionSystem::IPlugin* plugin = qobject_cast<ExtensionSystem::IPlugin*>(parent());
     if (!plugin)
         return false;
 
-    plugin->addAutoReleasedObject(new GNavigationQmlFactory(this, qmlUrl, displayName, priority, id, activationSequence));
+    plugin->addAutoReleasedObject(new GNavigationWidgetFactory(this, factory, displayName, priority, id, activationSequence));
     return true;
 }
 
 bool JsPlugin::loadAPI(QString libFileName)
 {
+    G_TRACE2(this);
+
     QLibrary library(libFileName, this);
     if (!library.load())
     {

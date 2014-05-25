@@ -32,7 +32,6 @@ Rectangle {
     Text {
         id: label
         color: "white"
-        anchors.verticalCenter: main.anchors.verticalCenter
         // two empty lines
         text: "Loading\nweather"
 	}

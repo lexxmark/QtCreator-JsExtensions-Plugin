@@ -14,5 +14,5 @@ function initialize() {
 
     //modeManager.addWidget(createSpacer(10));
 
-    jepAPI.registerNavigationQMLFactory("Clock.qml", "Clocks", 0, "", "");
+    jepAPI.registerNavigationWidgetFactory("Clock.qml", "Clocks", 0, "", "");
 }

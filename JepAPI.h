@@ -23,6 +23,8 @@
 #include <QMap>
 #include <functional>
 
+class QQuickView;
+
 class JsPlugin: public QObject
 {
     Q_OBJECT
@@ -42,7 +44,7 @@ public:
     void installQmlContext(QQmlEngine* qmlEngine);
 
     void changeDebugIndent(qint32 delta);
-    QWidget* createQuickViewWidget(QString qmlUrl, QObject* parent);
+    QPair<QWidget*, QQuickView*> createQuickViewWidget(QString qmlUrl, QObject* parent);
 
 public slots:
     bool loadAPI(QString libFileName);
@@ -56,7 +58,7 @@ public slots:
     QJSValue size(int w, int h) { return m_jsEngine->toScriptValue(QSize(w, h)); }
     QJSValue sizePolicy(int hor, int ver, int type) { return m_jsEngine->toScriptValue(QSizePolicy(QSizePolicy::Policy(hor), QSizePolicy::Policy(ver), QSizePolicy::ControlType(type))); }
 
-    bool registerNavigationQMLFactory(QString qmlUrl, QString displayName, int priority, QString id, QString activationSequence);
+    bool registerNavigationWidgetFactory(QJSValue factory, QString displayName, int priority, QString id, QString activationSequence);
 
 private:
     bool enableDebug();
@@ -118,6 +120,7 @@ struct GContext
 };
 
 #define G_TRACE GContext::TraceRecord trace(m_gContext.plugin, __FILE__, __LINE__, Q_FUNC_INFO)
+#define G_TRACE2(plugin) GContext::TraceRecord trace(plugin, __FILE__, __LINE__, Q_FUNC_INFO)
 
 class GWrapper: public QObject
 {
@@ -753,12 +756,12 @@ private:
     Core::ActionManager* m_owner;
 };
 
-class GNavigationQmlFactory: public Core::INavigationWidgetFactory
+class GNavigationWidgetFactory: public Core::INavigationWidgetFactory
 {
     Q_OBJECT
 
 public:
-    GNavigationQmlFactory(JsPlugin* owner, QString qmlUrl, QString displayName, int priority, QString id, QString activationSequence);
+    GNavigationWidgetFactory(JsPlugin* owner, QJSValue factory, QString displayName, int priority, QString id, QString activationSequence);
 
     QString displayName() const { return m_displayName; }
     int priority() const { return m_priority; }
@@ -772,7 +775,8 @@ public:
 
 private:
     JsPlugin* m_owner;
-    QString m_qmlUrl;
+    QJSValue m_factory;
+
     QString m_displayName;
     int m_priority;
     QString m_id;
