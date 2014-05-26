@@ -32,6 +32,7 @@ private:
     void invokePluginsFunction(QString functionName, bool optional = true);
 
     QList<JsPlugin*> m_plugins;
+    QList<JsPluginInfo> m_pluginInfos;
 };
 
 } // namespace Internal

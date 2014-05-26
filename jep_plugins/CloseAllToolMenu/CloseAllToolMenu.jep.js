@@ -1,3 +1,5 @@
+var pluginEnable = false;
+
 function closeAllAction() {
 	editorManager.closeAllEditors(true);
 

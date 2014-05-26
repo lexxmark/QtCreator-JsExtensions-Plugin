@@ -34,8 +34,9 @@ function initialize() {
 
 There are two optional functions **extensionsInitialized()** and **aboutToShutdown()** that will be called in **JsExtensionsPlugin::extensionsInitialized** and **JsExtensionsPlugin::aboutToShutdown** functions. Also there are three optional variables to manage JEP plugins:
 
-1. **pluginOrder** - numeric variable to change loading order (for example "var pluginOrder = 1;")
-2. **pluginDisable** - bool variable to abort plugin loading (for example "var pluginDisable = true;")
+1. **pluginDescription** - short text description of the plugin (for example "var pluginDescription = "My very usefull plugin";")
+1. **pluginPriority** - numeric variable to change loading order (for example "var pluginPriority = 1;")
+2. **pluginEnable** - bool variable to abort plugin loading (for example "var pluginEnable = false;")
 3. **pluginTrace** - bool variable to trace all wrapper calls to log file (for example "var pluginTrace = true;")
 
 In the global object of the JavaScript/QML environment were several objects injected to access QtCreator API:

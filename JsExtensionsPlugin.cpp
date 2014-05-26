@@ -1,5 +1,6 @@
 #include "JsExtensionsPlugin.h"
 #include "JsExtensionsConstants.h"
+#include "JepPluginsDialog.h"
 
 #include <coreplugin/icore.h>
 #include <coreplugin/icontext.h>
@@ -13,6 +14,7 @@
 #include <QMessageBox>
 #include <QMainWindow>
 #include <QMenu>
+#include <QDebug>
 
 #include <QtPlugin>
 
@@ -56,7 +58,10 @@ void JsExtensionsPlugin::loadPlugins(const QDir& dir, QString* errorString)
             }
             else
             {
-                if (!jsPlugin->isDisabled())
+                // collect all plugin infos
+                m_pluginInfos.append(jsPlugin->info());
+
+                if (jsPlugin->info().isEnabled)
                 {
                     // save plugin
                     m_plugins.append(jsPlugin.take());
@@ -119,20 +124,24 @@ bool JsExtensionsPlugin::initialize(const QStringList &arguments, QString *error
 
     Q_UNUSED(arguments)
     Q_UNUSED(errorString)
-/*
-    QAction *action = new QAction(tr("Settings"), this);
+
+    //
+    // setup "JepSettings" action
+    //
+    QAction *action = new QAction(tr("Settings..."), this);
     Core::Command *cmd = Core::ActionManager::registerAction(action, Constants::ACTION_ID,
                                                              Core::Context(Core::Constants::C_GLOBAL));
-    cmd->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+Meta+G")));
+    cmd->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+Meta+J")));
     connect(action, SIGNAL(triggered()), this, SLOT(onSettings()));
 
     Core::ActionContainer *menu = Core::ActionManager::createMenu(Constants::MENU_ID);
     menu->menu()->setTitle(tr("JsExtensionsPlugin"));
     menu->addAction(cmd);
     Core::ActionManager::actionContainer(Core::Constants::M_TOOLS)->addMenu(menu);
-*/
 
+    //
     // search and load jep plugins
+    //
     QDir pluginsDir(pluginSpec()->location());
     if (!pluginsDir.exists())
     {
@@ -161,7 +170,7 @@ bool JsExtensionsPlugin::initialize(const QStringList &arguments, QString *error
 
     // sort plugins
     std::sort(m_plugins.begin(), m_plugins.end(), [](JsPlugin* left, JsPlugin* right) {
-        return left->order() < right->order();
+        return left->info().priority < right->info().priority;
     });
 
     invokePluginsFunction("initialize");
@@ -191,9 +200,23 @@ ExtensionSystem::IPlugin::ShutdownFlag JsExtensionsPlugin::aboutToShutdown()
 
 void JsExtensionsPlugin::onSettings()
 {
-    QMessageBox::information(Core::ICore::mainWindow(),
-                             tr("Show settings dialog"),
-                             tr("This is an action from JsExtensions Plugin."));
+    QSettings* settings = Core::ICore::settings();
+    settings->beginGroup("JsExtensionsPlugin");
+    settings->beginGroup("SettingsDialog");
+
+    qDebug() << settings->fileName();
+
+    JepPluginsDialog dlg(Core::ICore::dialogParent());
+    dlg.restoreGeometry(settings->value("geometry").toByteArray());
+
+    dlg.plugins2Model(m_pluginInfos);
+    if (dlg.exec() == QDialog::Accepted)
+        dlg.model2Plugins(m_pluginInfos);
+
+    settings->setValue("geometry", dlg.saveGeometry());
+
+    settings->endGroup(); //SettingsDialog
+    settings->endGroup(); //"JsExtensionsPlugin"
 }
 
 Q_EXPORT_PLUGIN2(JsExtensions, JsExtensionsPlugin)

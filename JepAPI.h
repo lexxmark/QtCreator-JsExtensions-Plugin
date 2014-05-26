@@ -25,6 +25,21 @@
 
 class QQuickView;
 
+namespace JsExtensions {
+namespace Internal {
+
+struct JsPluginInfo
+{
+    QString name;
+    QString description;
+    qint32 priority;
+    bool isEnabled;
+    bool trace;
+
+    JsPluginInfo(): priority(0), isEnabled(true), trace(false)
+    {}
+};
+
 class JsPlugin: public QObject
 {
     Q_OBJECT
@@ -33,9 +48,7 @@ public:
     explicit JsPlugin(QObject* parent = nullptr);
     ~JsPlugin();
 
-    qint32 order() const { return m_order; }
-    bool isDisabled() const { return m_isDisabled; }
-    bool trace() const { return m_trace; }
+    const JsPluginInfo& info() const { return m_info; }
 
     QJSEngine* jsEngine() { return m_jsEngine.data(); }
     bool loadPlugin(QString pluginPath, QString* errorString);
@@ -69,14 +82,9 @@ private:
     QScopedPointer<QJSEngine> m_jsEngine;
     QMap<QByteArray, std::function<QObject*(QObject*)>> m_factories;
 
-    // attributes
-    qint32 m_order;
-    bool m_isDisabled;
-    bool m_trace;
-
     // plugin info
     QString m_pluginPath;
-    QString m_pluginName;
+    JsPluginInfo m_info;
 
     // debugging/tracing
     QScopedPointer<QTextStream> m_debugStream;
@@ -99,7 +107,7 @@ struct GContext
             : plugin(plugin)
         {
             Q_ASSERT(plugin);
-            if (plugin->trace())
+            if (plugin->info().trace)
             {
                 record = QString("%1 : %2 : %3").arg(file).arg(line).arg(func);
 
@@ -110,7 +118,7 @@ struct GContext
 
         ~TraceRecord()
         {
-            if (plugin->trace())
+            if (plugin->info().trace)
             {
                 plugin->changeDebugIndent(-4);
                 plugin->debug(QString("End   : ") + record);
@@ -782,6 +790,8 @@ private:
     QString m_activationSequence;
 };
 
+} // namespace Internal
+} // namespace JsExtensions
 
 #endif // JEP_API_H
 

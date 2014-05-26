@@ -1,6 +1,5 @@
 //var pluginTrace = true;
-var pluginOrder = 2;
-//var pluginDisable = true;
+var pluginPriority = 2;
 
 function createWeather() {
     return jepAPI.createQuickView("Weather.qml", null);

@@ -7,12 +7,14 @@ CONFIG += c++11
 # JsExtensions files
 
 SOURCES += JsExtensionsPlugin.cpp \
-        JepAPI.cpp
+        JepAPI.cpp \
+    JepPluginsDialog.cpp
 
 HEADERS += JsExtensionsPlugin.h \
         JsExtensions_global.h \
         JsExtensionsConstants.h \
-        JepAPI.h
+        JepAPI.h \
+    JepPluginsDialog.h
 
 # Qt Creator linking
 
@@ -60,4 +62,7 @@ first.depends = $(first) copy_plugins
 export(first.depends)
 export(copy_plugins.commands)
 QMAKE_EXTRA_TARGETS += first copy_plugins
+
+FORMS += \
+    JepPluginsDialog.ui
 

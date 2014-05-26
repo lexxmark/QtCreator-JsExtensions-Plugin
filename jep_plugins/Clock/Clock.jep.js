@@ -1,5 +1,4 @@
-var pluginOrder = 1;
-//var pluginDisable = true;
+var pluginPriority = 1;
 
 function createSpacer(space) {
     var spacer = jepAPI.createQObject("QWidget", modeManager);

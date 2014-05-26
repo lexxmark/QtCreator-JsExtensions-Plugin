@@ -17,6 +17,8 @@
 #include <extensionsystem/iplugin.h>
 #include <extensionsystem/pluginmanager.h>
 
+using namespace JsExtensions::Internal;
+
 static int coreTypeId = qmlRegisterType<GCore>();
 static int messageManagerTypeId = qmlRegisterType<GMessageManager>();
 static int modeManagerTypeId = qmlRegisterType<GModeManager>();
@@ -39,9 +41,6 @@ static int editorManagerTypeId = qmlRegisterType<GEditorManager>();
 
 JsPlugin::JsPlugin(QObject* parent)
     : QObject(parent),
-      m_order(0),
-      m_isDisabled(false),
-      m_trace(false),
       m_debugIndent(0)
 {
     // register creatable objects
@@ -87,7 +86,7 @@ bool JsPlugin::loadPlugin(QString pluginPath, QString* errorString)
     {
         // save plugin path and name
         m_pluginPath = pluginPath;
-        m_pluginName = QFileInfo(m_pluginPath).fileName();
+        m_info.name = QFileInfo(m_pluginPath).baseName();
 
         // open plugin file
         QFile scriptFile(pluginPath);
@@ -112,25 +111,32 @@ bool JsPlugin::loadPlugin(QString pluginPath, QString* errorString)
             throw JepAPIException(QString("Script error: '%1'.").arg(res.toString()));
         }
 
-        // try to find "pluginDisable" variable
-        res = m_jsEngine->evaluate("pluginDisable");
-        if (res.isBool())
+        // try to find "pluginDescription" variable
+        res = m_jsEngine->evaluate("pluginDescription");
+        if (res.isString())
         {
-            m_isDisabled = res.toBool();
+            m_info.description = res.toString();
         }
 
-        // try to find "pluginOrder" variable
-        res = m_jsEngine->evaluate("pluginOrder");
+        // try to find "pluginEnable" variable
+        res = m_jsEngine->evaluate("pluginEnable");
+        if (res.isBool())
+        {
+            m_info.isEnabled = res.toBool();
+        }
+
+        // try to find "pluginPriority" variable
+        res = m_jsEngine->evaluate("pluginPriority");
         if (res.isNumber())
         {
-            m_order = res.toInt();
+            m_info.priority = res.toInt();
         }
 
         // try to find "pluginTrace" variable
         res = m_jsEngine->evaluate("pluginTrace");
         if (res.isBool())
         {
-            m_trace = res.toBool();
+            m_info.trace = res.toBool();
         }
     }
     catch (const JepAPIException& exception)
@@ -415,7 +421,7 @@ bool JsPlugin::enableDebug()
 
 void JsPlugin::debug(QString str)
 {
-    qDebug() << QString("%1 : %2").arg(m_pluginName, str);
+    qDebug() << QString("%1 : %2").arg(m_info.name, str);
 
     enableDebug();
 

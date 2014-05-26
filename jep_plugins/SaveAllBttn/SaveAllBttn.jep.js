@@ -1,3 +1,5 @@
+var pluginDescription = "Adds 'Save All' button to mode panel";
+
 function createSpacer(space) {
     var spacer = jepAPI.createQObject("QWidget", modeManager);
     spacer.minimumHeight = space;
