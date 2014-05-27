@@ -283,9 +283,11 @@ QPair<QWidget*, QQuickView*> JsPlugin::createQuickViewWidget(QString qmlUrl, QOb
     QSize s = view->initialSize();
     container->setMinimumSize(s);
 
+    view->setResizeMode(QQuickView::SizeRootObjectToView);
+
     qmlEngine.take();
     result.first = container.take();
-    result.second =view.take();
+    result.second = view.take();
 
     return result;
 }

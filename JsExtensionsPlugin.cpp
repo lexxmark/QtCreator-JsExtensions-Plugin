@@ -237,12 +237,17 @@ void JsExtensionsPlugin::onSettings()
 
     dlg.plugins2Model(m_pluginInfos);
     if (dlg.exec() == QDialog::Accepted)
+    {
         dlg.model2Plugins(m_pluginInfos);
+        //Core::ICore::showWarningWithOptions("Attention", "Please relaunch QtCreator to apply settings.");
+        //Core::MessageManager::showOutputPane();
+        Core::MessageManager::write("Relaunch QtCreator to apply JsExtensionsPlugin settings.", Core::MessageManager::Flash);
+    }
 
     settings->setValue("geometry", dlg.saveGeometry());
 
     settings->endGroup(); //SettingsDialog
-    settings->endGroup(); //"JsExtensionsPlugin"
+    settings->endGroup(); //JsExtensionsPlugin
 }
 
 Q_EXPORT_PLUGIN2(JsExtensions, JsExtensionsPlugin)

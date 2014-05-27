@@ -4,7 +4,7 @@ import QtQuick.XmlListModel 2.0
 Rectangle {
     id: main
 
-    width: 70
+    width: 30
     height: label.height+4
     color: "gray"
 
