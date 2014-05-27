@@ -38,6 +38,9 @@ struct JsPluginInfo
 
     JsPluginInfo(): priority(0), isEnabled(true), trace(false)
     {}
+
+    void save(QSettings* settings);
+    void restore(QSettings* settings);
 };
 
 class JsPlugin: public QObject
@@ -49,6 +52,7 @@ public:
     ~JsPlugin();
 
     const JsPluginInfo& info() const { return m_info; }
+    JsPluginInfo& info() { return m_info; }
 
     QJSEngine* jsEngine() { return m_jsEngine.data(); }
     bool loadPlugin(QString pluginPath, QString* errorString);
@@ -429,7 +433,7 @@ public slots:
         return QString::fromLatin1(m_owner->getOpenWithEditorId(fileName, isExternalEditor).name());
     }
 
-    GDocument* currentDocument()
+    JsExtensions::Internal::GDocument* currentDocument()
     {
         G_TRACE;
         return new GDocument(m_gContext, m_owner->currentDocument());
@@ -700,10 +704,10 @@ public slots:
     QJSValue insertLocation(QString group) const { G_TRACE; return wrapObject(m_owner->insertLocation(str2id(group))); }
     void appendGroup(QString group) { G_TRACE; m_owner->appendGroup(str2id(group)); }
     void insertGroup(QString before, QString group) { G_TRACE; m_owner->insertGroup(str2id(before), str2id(group)); }
-    void addAction(GCommand *action, QString group/* = QString()*/) { G_TRACE; m_owner->addAction(action->owner(), str2id(group)); }
-    void addMenu1(GActionContainer *menu, QString group/* = QString()*/) { G_TRACE; m_owner->addMenu(menu->m_owner, str2id(group)); }
-    void addMenu2(GActionContainer *before, GActionContainer *menu, QString group/* = QString()*/) { G_TRACE; m_owner->addMenu(before->m_owner, menu->m_owner, str2id(group)); }
-    GCommand *addSeparator(const QString &context, QString group/* = QString()*/, QAction **outSeparator/* = 0*/) { G_TRACE; return new GCommand(m_gContext, m_owner->addSeparator(Core::Context(str2id(context)), str2id(group), outSeparator)); }
+    void addAction(JsExtensions::Internal::GCommand *action, QString group/* = QString()*/) { G_TRACE; m_owner->addAction(action->owner(), str2id(group)); }
+    void addMenu1(JsExtensions::Internal::GActionContainer *menu, QString group/* = QString()*/) { G_TRACE; m_owner->addMenu(menu->m_owner, str2id(group)); }
+    void addMenu2(JsExtensions::Internal::GActionContainer *before, JsExtensions::Internal::GActionContainer *menu, QString group/* = QString()*/) { G_TRACE; m_owner->addMenu(before->m_owner, menu->m_owner, str2id(group)); }
+    JsExtensions::Internal::GCommand *addSeparator(const QString &context, QString group/* = QString()*/, QAction **outSeparator/* = 0*/) { G_TRACE; return new GCommand(m_gContext, m_owner->addSeparator(Core::Context(str2id(context)), str2id(group), outSeparator)); }
 
     void clear() { G_TRACE; m_owner->clear(); }
 
@@ -729,18 +733,18 @@ public slots:
 
     QJSValue gOwner() { G_TRACE; return wrapObject(m_owner); }
 
-    GActionContainer *createMenu(QString id) { G_TRACE; return new GActionContainer(m_gContext, m_owner->createMenu(str2id(id))); }
-    GActionContainer *createMenuBar(QString id) { G_TRACE; return new GActionContainer(m_gContext, m_owner->createMenuBar(str2id(id))); }
+    JsExtensions::Internal::GActionContainer *createMenu(QString id) { G_TRACE; return new GActionContainer(m_gContext, m_owner->createMenu(str2id(id))); }
+    JsExtensions::Internal::GActionContainer *createMenuBar(QString id) { G_TRACE; return new GActionContainer(m_gContext, m_owner->createMenuBar(str2id(id))); }
 
-    GCommand *registerAction(QAction *action, QString id, const QString &context, bool scriptable/* = false*/)
+    JsExtensions::Internal::GCommand *registerAction(QAction *action, QString id, const QString &context, bool scriptable/* = false*/)
     {
         G_TRACE;
         Core::Context ctx(str2id(context));
         return new GCommand(m_gContext, m_owner->registerAction(action, str2id(id), ctx, scriptable));
     }
 
-    GCommand *command(QString id) { G_TRACE; return new GCommand(m_gContext, m_owner->command(str2id(id))); }
-    GActionContainer *actionContainer(QString id) { G_TRACE; return new GActionContainer(m_gContext, m_owner->actionContainer(str2id(id))); }
+    JsExtensions::Internal::GCommand *command(QString id) { G_TRACE; return new GCommand(m_gContext, m_owner->command(str2id(id))); }
+    JsExtensions::Internal::GActionContainer *actionContainer(QString id) { G_TRACE; return new GActionContainer(m_gContext, m_owner->actionContainer(str2id(id))); }
 
     QJSValue commands()
     {

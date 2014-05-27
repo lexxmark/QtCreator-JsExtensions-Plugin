@@ -26,7 +26,7 @@ function initialize() {
     modeManager.addWidget(createSaveAllButton());
     modeManager.addWidget(createSpacer(10));
 
-    jepAPI.dumpCommands();
+    //jepAPI.dumpCommands();
 
     jepAPI.debug("Success initialize");
 }

@@ -16,7 +16,7 @@ JepPluginsDialog::JepPluginsDialog(QWidget *parent) :
     m_model.setHorizontalHeaderLabels(QStringList() << "Name" << "Enable" << "Priority" << "Trace" << "Description");
 
     ui->pluginsTable->setModel(&m_model);
-    ui->pluginsTable->verticalHeader()->setResizeMode(QHeaderView::ResizeToContents);
+    //ui->pluginsTable->verticalHeader()->setResizeMode(QHeaderView::ResizeToContents);
     ui->pluginsTable->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
 }
 
@@ -34,6 +34,7 @@ void JepPluginsDialog::plugins2Model(const QList<JsPluginInfo>& plugins)
 
         QStandardItem *item = new QStandardItem(plugin.name);
         item->setEditable(false);
+        item->setToolTip(plugin.name);
         m_model.setItem(row, 0, item);
 
         item = new QStandardItem();
@@ -52,6 +53,7 @@ void JepPluginsDialog::plugins2Model(const QList<JsPluginInfo>& plugins)
 
         item = new QStandardItem(plugin.description);
         item->setEditable(false);
+        item->setToolTip(plugin.description);
         m_model.setItem(row, 4, item);
     }
 }

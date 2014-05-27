@@ -29,6 +29,34 @@ static int actionContainerTypeId = qmlRegisterType<GActionContainer>();
 static int actionManagerTypeId = qmlRegisterType<GActionManager>();
 static int editorManagerTypeId = qmlRegisterType<GEditorManager>();
 
+void JsPluginInfo::save(QSettings* settings)
+{
+    settings->beginGroup(QString("Plugin_%1").arg(name));
+    {
+        settings->setValue("priority", priority);
+        settings->setValue("isEnabled", isEnabled);
+        settings->setValue("trace", trace);
+    }
+    settings->endGroup();
+}
+
+void JsPluginInfo::restore(QSettings* settings)
+{
+    settings->beginGroup(QString("Plugin_%1").arg(name));
+    {
+        if (settings->contains("priority"))
+            priority = settings->value("priority", priority).toInt();
+
+        if (settings->contains("isEnabled"))
+            isEnabled = settings->value("isEnabled", isEnabled).toBool();
+
+        if (settings->contains("trace"))
+            trace = settings->value("trace", trace).toBool();
+    }
+    settings->endGroup();
+}
+
+
 #define REG_O_FACTORY(ClassName) \
     m_factories.insert(#ClassName, [](QObject* parent)->QObject* { \
         return new ClassName(parent); \
@@ -429,6 +457,7 @@ void JsPlugin::debug(QString str)
     {
         QString indent(m_debugIndent, QChar::Space);
         *m_debugStream << indent << str << endl;
+        m_debugStream->flush();
     }
 }
 

@@ -28,8 +28,10 @@ private slots:
     void onSettings();
 
 private:
-    void loadPlugins(const QDir& dir, QString* errorString);
+    void loadPlugins(const QDir& dir, QSettings *settings, QString* errorString);
     void invokePluginsFunction(QString functionName, bool optional = true);
+
+    QSettings* pluginSettings();
 
     QList<JsPlugin*> m_plugins;
     QList<JsPluginInfo> m_pluginInfos;

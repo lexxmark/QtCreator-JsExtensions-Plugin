@@ -1,3 +1,5 @@
+var pluginDescription = "Adds \"Close All\" button to mode panel";
+
 function closeAllAction() {
     editorManager.closeAllEditors(true);
 }

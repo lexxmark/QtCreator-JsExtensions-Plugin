@@ -5,3 +5,4 @@
 * JIRA JEP plugin (notification of upcoming issues, add issue bttn)
 * Git JEP plugin (???)
 * Move weather JEP to yahoo API
+* Make QML views resizable

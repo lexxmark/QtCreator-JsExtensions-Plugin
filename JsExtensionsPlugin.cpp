@@ -33,7 +33,7 @@ JsExtensionsPlugin::~JsExtensionsPlugin()
     // Delete members
 }
 
-void JsExtensionsPlugin::loadPlugins(const QDir& dir, QString* errorString)
+void JsExtensionsPlugin::loadPlugins(const QDir& dir, QSettings* settings, QString* errorString)
 {
     QFileInfoList files = dir.entryInfoList(QDir::NoDotAndDotDot|QDir::Files|QDir::Dirs, QDir::DirsFirst);
     foreach (const QFileInfo &file, files)
@@ -41,7 +41,7 @@ void JsExtensionsPlugin::loadPlugins(const QDir& dir, QString* errorString)
         if (file.isDir())
         {
             // process sub dirs
-            loadPlugins(QDir(file.filePath()), errorString);
+            loadPlugins(QDir(file.filePath()), settings, errorString);
             continue;
         }
 
@@ -58,6 +58,9 @@ void JsExtensionsPlugin::loadPlugins(const QDir& dir, QString* errorString)
             }
             else
             {
+                // restore plugin info from settings
+                jsPlugin->info().restore(pluginSettings());
+
                 // collect all plugin infos
                 m_pluginInfos.append(jsPlugin->info());
 
@@ -113,6 +116,11 @@ void JsExtensionsPlugin::invokePluginsFunction(QString functionName, bool option
     }
 }
 
+QSettings* JsExtensionsPlugin::pluginSettings()
+{
+    return Core::ICore::settings();
+}
+
 bool JsExtensionsPlugin::initialize(const QStringList &arguments, QString *errorString)
 {
     // Register objects in the plugin manager's object pool
@@ -155,7 +163,14 @@ bool JsExtensionsPlugin::initialize(const QStringList &arguments, QString *error
         return false;
     }
 
-    loadPlugins(pluginsDir, errorString);
+    {
+        QSettings* settings = pluginSettings();
+        settings->beginGroup("JsExtensionsPlugin");
+
+        loadPlugins(pluginsDir, settings, errorString);
+
+        settings->endGroup(); // JsExtensionsPlugin
+    }
 
     if (!errorString->isEmpty())
     {
@@ -168,7 +183,7 @@ bool JsExtensionsPlugin::initialize(const QStringList &arguments, QString *error
         return false;
     }
 
-    // sort plugins
+    // reorder plugins
     std::sort(m_plugins.begin(), m_plugins.end(), [](JsPlugin* left, JsPlugin* right) {
         return left->info().priority < right->info().priority;
     });
@@ -193,6 +208,19 @@ ExtensionSystem::IPlugin::ShutdownFlag JsExtensionsPlugin::aboutToShutdown()
     // Disconnect from signals that are not needed during shutdown
     // Hide UI (if you add UI that is not in the main window directly)
 
+    {
+        QSettings* settings = pluginSettings();
+        settings->beginGroup("JsExtensionsPlugin");
+
+        // save plugin info to settings
+        for (auto it = m_pluginInfos.begin(); it != m_pluginInfos.end(); ++it)
+        {
+            (*it).save(pluginSettings());
+        }
+
+        settings->endGroup(); //"JsExtensionsPlugin"
+    }
+
     invokePluginsFunction("aboutToShutdown");
 
     return SynchronousShutdown;
@@ -200,11 +228,9 @@ ExtensionSystem::IPlugin::ShutdownFlag JsExtensionsPlugin::aboutToShutdown()
 
 void JsExtensionsPlugin::onSettings()
 {
-    QSettings* settings = Core::ICore::settings();
+    QSettings* settings = pluginSettings();
     settings->beginGroup("JsExtensionsPlugin");
     settings->beginGroup("SettingsDialog");
-
-    qDebug() << settings->fileName();
 
     JepPluginsDialog dlg(Core::ICore::dialogParent());
     dlg.restoreGeometry(settings->value("geometry").toByteArray());

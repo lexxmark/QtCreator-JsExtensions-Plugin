@@ -1,4 +1,5 @@
 var pluginPriority = 1;
+var pluginDescription = "Shows current time";
 
 function createSpacer(space) {
     var spacer = jepAPI.createQObject("QWidget", modeManager);
@@ -8,8 +9,8 @@ function createSpacer(space) {
 
 function initialize() {
 
-    //var w = jepAPI.createQuickView("Clock.qml", modeManager);
-    //modeManager.addWidget(w);
+    var w = jepAPI.createQuickView("Clock.qml", modeManager);
+    modeManager.addWidget(w);
 
     //modeManager.addWidget(createSpacer(10));
 

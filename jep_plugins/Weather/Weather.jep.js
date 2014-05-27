@@ -1,5 +1,6 @@
 //var pluginTrace = true;
 var pluginPriority = 2;
+var pluginDescription = "Shows current weather";
 
 function createWeather() {
     return jepAPI.createQuickView("Weather.qml", null);

@@ -1,4 +1,5 @@
 var pluginEnable = false;
+var pluginDescription = "Adds \"Close All\" menu item to Tools submenu";
 
 function closeAllAction() {
 	editorManager.closeAllEditors(true);
@@ -14,7 +15,7 @@ function closeAllAction() {
     msgBox.exec();
     */
 
-    //core.showWarningWithOptions("Title", "Main text", "Details", "", "", null);
+    core.showWarningWithOptions("Information", "All editors were closed", "", "", "", null);
 }
 
 function installCloseAllToolMenu() {
@@ -24,7 +25,7 @@ function installCloseAllToolMenu() {
 	cmd.setDefaultKeySequence("Ctrl+Alt+Meta+C");
 	action.triggered.connect(closeAllAction);
     var menu = actionManager.createMenu("JsExtentionsPlugin.Menu");
-    menu.menu().title = "JsExtentionsPlugin";
+    menu.menu().title = "CloseAllMenu";
 	menu.addAction(cmd, "");
 	actionManager.actionContainer("QtCreator.Menu.Tools").addMenu1(menu, "");
 }

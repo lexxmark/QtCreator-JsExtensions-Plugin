@@ -1,5 +1,6 @@
 var pluginPriority = -1;
 var pluginTrace = true;
+var pluginDescription = "Tracks working and relax time";
 
 function createSpacer(space) {
     var spacer = jepAPI.createQObject("QWidget", modeManager);
