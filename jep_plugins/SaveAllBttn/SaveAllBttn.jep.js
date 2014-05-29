@@ -16,7 +16,8 @@ function createSaveAllButton() {
     bttn.sizePolicy = jepAPI.sizePolicy(13, 0, 1);
 
     var cmd = actionManager.command("QtCreator.SaveAll");
-    bttn.setDefaultAction(cmd.action());
+    var act = cmd.action();
+    bttn.setDefaultAction(act);
 
     return bttn;
 }

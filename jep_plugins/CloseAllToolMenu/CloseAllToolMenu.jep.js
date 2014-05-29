@@ -20,14 +20,15 @@ function closeAllAction() {
 
 function installCloseAllToolMenu() {
     var action = jepAPI.createQObject("QAction", actionManager);
-	action.text = "Close All";
-    var cmd = actionManager.registerAction(action, "JsExtentionsPlugin.Action", "Global Context", false);
-	cmd.setDefaultKeySequence("Ctrl+Alt+Meta+C");
+    action.text = "Close All";
+/*    var cmd = actionManager.registerAction(action, "JsExtentionsPlugin.Action", "Global Context", false);
+/*	cmd.setDefaultKeySequence("Ctrl+Alt+Meta+C");
 	action.triggered.connect(closeAllAction);
     var menu = actionManager.createMenu("JsExtentionsPlugin.Menu");
     menu.menu().title = "CloseAllMenu";
 	menu.addAction(cmd, "");
 	actionManager.actionContainer("QtCreator.Menu.Tools").addMenu1(menu, "");
+    */
 }
 
 function initialize() {

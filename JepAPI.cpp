@@ -28,6 +28,7 @@ static int documentCommandTypeId = qmlRegisterType<GDocument>();
 static int actionContainerTypeId = qmlRegisterType<GActionContainer>();
 static int actionManagerTypeId = qmlRegisterType<GActionManager>();
 static int editorManagerTypeId = qmlRegisterType<GEditorManager>();
+static int actionTypeId = qmlRegisterType<QAction>();
 
 void JsPluginInfo::save(QSettings* settings)
 {

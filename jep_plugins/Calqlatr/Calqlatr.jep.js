@@ -1,5 +1,5 @@
 var pluginPriority = 1;
-var pluginDescription = "Shows current time in digital clock";
+var pluginDescription = "Adds simple calculator to navigation panel";
 
 function createSpacer(space) {
     var spacer = jepAPI.createQObject("QWidget", modeManager);
@@ -8,5 +8,5 @@ function createSpacer(space) {
 }
 
 function initialize() {
-    jepAPI.registerNavigationWidgetFactory("Clocks.qml", "Clock", 0, "", "");
+    jepAPI.registerNavigationWidgetFactory("Calqlatr.qml", "SimpleCalculator", 0, "", "");
 }
