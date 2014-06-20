@@ -3,6 +3,7 @@ import QtQuick.Controls 1.1
 import QtQuick.Window 2.1
 import QtQuick.Layouts 1.1
 import QtGraphicalEffects 1.0
+//import "RelaxSettingsDlg.qml"
 
 Rectangle {
     id: relaxBox
@@ -15,6 +16,28 @@ Rectangle {
     property int timerPeriod: 1
 
     property date lastAlarmTime: new Date
+
+    function restore() {
+        relaxBox.color = "green";
+        label.opacity = 1;
+        label.text = "Work";
+        relaxBox.lastAlarmTime = new Date;
+        timer.start();
+    }
+
+    function timeChanged() {
+        var now = new Date;
+        var durationSec = (now.getTime() - relaxBox.lastAlarmTime.getTime())/1000;
+
+        if (durationSec > relaxBox.workDuration) {
+            relaxBox.color = "red";
+            //core.showWarningWithOptions("Attention", "It's time to relax.", "", "", "", null);
+            label.text = "Break";
+            messageManager.write("It's time to relax!", 512);
+            timer.stop();
+            flashing.start();
+        }
+    }
 
     Component.onCompleted: restore()
 
@@ -72,88 +95,16 @@ Rectangle {
         }
     }
 
-    Window {
+    RelaxSettingsDlg {
         id: settingsDlg
-        modality: Qt.WindowModal
-        visible: false
-        title: "Relax Tracker settings"
-        minimumWidth: rowsLayout.implicitWidth+20
-        minimumHeight: gridLayout.implicitHeight+20
 
-        RowLayout {
-            id: rowsLayout
-            anchors.fill: parent
-            anchors.margins: 10
-            //anchors.verticalCenter: parent.verticalCenter
-
-            GridLayout {
-                id: gridLayout
-                anchors.leftMargin: 10
-                columns: 2
-                Text {
-                    text: "WorkDuration"
-                }
-                SpinBox {
-                    id: wd
-                    implicitWidth: 100
-                    suffix: "min"
-                    value: relaxBox.workDuration/60
-                }
-
-                Text {
-                    text: "RelaxDuration"
-                }
-                SpinBox {
-                    id: rd
-                    implicitWidth: 100
-                    suffix: "min"
-                    value: relaxBox.relaxDuration/60
-                }
-            }
-            ColumnLayout {
-                anchors.right: parent.right
-
-                Button {
-                    text: "OK"
-                    onClicked: settingsDlg.apply()
-                }
-                Button {
-                    text: "Cancel"
-                    onClicked: settingsDlg.close()
-                }
-            }
-        }
-
-        function apply() {
-            settingsDlg.close();
-            jepAPI.debug(wd.value);
-            jepAPI.debug(rd.value);
-        }
-    }
-
-    function restore() {
-        relaxBox.color = "green";
-        label.opacity = 1;
-        label.text = "Work";
-        relaxBox.lastAlarmTime = new Date;
-        timer.start();
-    }
-
-    function timeChanged() {
-        var now = new Date;
-        var durationSec = (now.getTime() - relaxBox.lastAlarmTime.getTime())/1000;
-
-        if (durationSec > relaxBox.workDuration) {
-            relaxBox.color = "red";
-            //core.showWarningWithOptions("Attention", "It's time to relax.", "", "", "", null);
-            label.text = "Break";
-            messageManager.write("It's time to relax!", 512);
-            timer.stop();
-            flashing.start();
+        onAccepted: {
+            relaxBox.workDuration = settingsDlg.workDuration*60;
+            relaxBox.relaxDuration = settingsDlg.relaxDuration*60;
         }
     }
 
     function showSettings() {
-        settingsDlg.show();
+        settingsDlg.showModal(relaxBox.workDuration/60, relaxBox.relaxDuration/60);
     }
 }
