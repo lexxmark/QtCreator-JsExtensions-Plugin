@@ -221,6 +221,12 @@ ExtensionSystem::IPlugin::ShutdownFlag JsExtensionsPlugin::aboutToShutdown()
         settings->endGroup(); //"JsExtensionsPlugin"
     }
 
+    // fire aboutToShutdown signals
+    foreach (JsPlugin *plugin, m_plugins)
+    {
+        emit plugin->aboutToShutdown();
+    }
+
     invokePluginsFunction("aboutToShutdown");
 
     return SynchronousShutdown;

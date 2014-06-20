@@ -63,9 +63,15 @@ public:
     void changeDebugIndent(qint32 delta);
     QPair<QWidget*, QQuickView*> createQuickViewWidget(QString qmlUrl, QObject* parent);
 
+signals:
+    void aboutToShutdown();
+
 public slots:
     bool loadAPI(QString libFileName);
     void debug(QString str);
+
+    QString loadFile(QString fileName);
+    bool saveFile(QString fileName, QString content);
 
     QJSValue createQuickView(QString qmlUrl, QObject* parent);
     QJSValue createQObject(QString type, QObject* parent);
@@ -82,6 +88,7 @@ public slots:
 
 private:
     bool enableDebug();
+    QString normalizeFileName(QString fileName);
 
     QScopedPointer<QJSEngine> m_jsEngine;
     QMap<QByteArray, std::function<QObject*(QObject*)>> m_factories;

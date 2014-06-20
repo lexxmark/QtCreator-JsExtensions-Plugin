@@ -256,15 +256,15 @@ QPair<QWidget*, QQuickView*> JsPlugin::createQuickViewWidget(QString qmlUrl, QOb
     QScopedPointer<QQuickView> view(new QQuickView(qmlEngine.data(), nullptr));
 
     // make absolute file path related to plugin dir
-    QFileInfo fi(QFileInfo(m_pluginPath).absolutePath(), qmlUrl);
+    QString url = normalizeFileName(qmlUrl);
+    QFileInfo fi(url);
     if (fi.isFile())
     {
-        qmlUrl = fi.absoluteFilePath();
-        view->setSource(QUrl::fromLocalFile(qmlUrl));
+        view->setSource(QUrl::fromLocalFile(url));
     }
     else
     {
-        view->setSource(QUrl(qmlUrl));
+        view->setSource(QUrl(url));
     }
 
     if (view->status() == QQuickView::Error)
@@ -400,7 +400,7 @@ bool JsPlugin::loadAPI(QString libFileName)
 {
     G_TRACE2(this);
 
-    QLibrary library(libFileName, this);
+    QLibrary library(normalizeFileName(libFileName), this);
     if (!library.load())
     {
         debug(tr("Cannot load '%1'.").arg(libFileName));
@@ -428,6 +428,15 @@ bool JsPlugin::loadAPI(QString libFileName)
     }
 
     return true;
+}
+
+QString JsPlugin::normalizeFileName(QString fileName)
+{
+    QFileInfo fi(QFileInfo(m_pluginPath).absolutePath(), fileName);
+    if (fi.isFile())
+        return fi.absoluteFilePath();
+    else
+        return fileName;
 }
 
 bool JsPlugin::enableDebug()
@@ -462,5 +471,33 @@ void JsPlugin::debug(QString str)
         *m_debugStream << indent << str << endl;
         m_debugStream->flush();
     }
+}
+
+QString JsPlugin::loadFile(QString fileName)
+{
+    QFileInfo fi(QFileInfo(m_pluginPath).absolutePath(), fileName);
+    QFile file(fi.absoluteFilePath());
+    if (file.open(QIODevice::ReadOnly))
+    {
+        QTextStream str(&file);
+        return str.readAll();
+    }
+
+    return QString();
+}
+
+bool JsPlugin::saveFile(QString fileName, QString content)
+{
+    QFileInfo fi(QFileInfo(m_pluginPath).absolutePath(), fileName);
+    QFile file(fi.absoluteFilePath());
+    if (file.open(QIODevice::WriteOnly|QIODevice::Truncate))
+    {
+        QTextStream str(&file);
+        str << content;
+        str.flush();
+        return str.status() == QTextStream::Ok;
+    }
+
+    return false;
 }
 

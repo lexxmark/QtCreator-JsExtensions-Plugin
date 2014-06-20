@@ -1,21 +1,46 @@
 import QtQuick 2.1
 import QtQuick.Controls 1.1
-import QtQuick.Window 2.1
-import QtQuick.Layouts 1.1
-import QtGraphicalEffects 1.0
-//import "RelaxSettingsDlg.qml"
 
 Rectangle {
     id: relaxBox
     width: 70
     height: 30
 
-    // values in seconds
-    property int workDuration: 10*60
-    property int relaxDuration: 2*60
+    // values in minutes
+    property int workDuration: 10
+    property int relaxDuration: 2
     property int timerPeriod: 1
 
     property date lastAlarmTime: new Date
+
+    Component.onCompleted: {
+        loadSettings();
+        restore();
+
+        // save settings at plugin shutdown
+        // Component.onDestruction cannot be used because
+        // jepAPI is null at this moment
+        jepAPI.aboutToShutdown.connect(saveSettings);
+    }
+
+    function loadSettings() {
+        var content = jepAPI.loadFile("RT.settings");
+        if (content !== '') {
+            var params = JSON.parse(content);
+            if ('workDuration' in params)
+                relaxBox.workDuration = params.workDuration;
+            if ('relaxDuration' in params)
+                relaxBox.relaxDuration = params.relaxDuration;
+        }
+    }
+
+    function saveSettings() {
+        var params = {
+            'workDuration': relaxBox.workDuration,
+            'relaxDuration': relaxBox.relaxDuration
+        };
+        jepAPI.saveFile("RT.settings", JSON.stringify(params));
+    }
 
     function restore() {
         relaxBox.color = "green";
@@ -29,7 +54,7 @@ Rectangle {
         var now = new Date;
         var durationSec = (now.getTime() - relaxBox.lastAlarmTime.getTime())/1000;
 
-        if (durationSec > relaxBox.workDuration) {
+        if (durationSec > (relaxBox.workDuration*60)) {
             relaxBox.color = "red";
             //core.showWarningWithOptions("Attention", "It's time to relax.", "", "", "", null);
             label.text = "Break";
@@ -38,8 +63,6 @@ Rectangle {
             flashing.start();
         }
     }
-
-    Component.onCompleted: restore()
 
     Text {
         id: label
@@ -53,7 +76,7 @@ Rectangle {
             running: false
 
             SequentialAnimation {
-                loops: relaxBox.relaxDuration
+                loops: relaxBox.relaxDuration*60
 
                 PropertyAnimation {
                     duration: 500
@@ -73,7 +96,7 @@ Rectangle {
 
     Timer {
         id: timer
-        interval: 1000*relaxBox.timerPeriod
+        interval: 1000*60*relaxBox.timerPeriod
         running: true
         repeat: true
         triggeredOnStart: true
@@ -99,12 +122,12 @@ Rectangle {
         id: settingsDlg
 
         onAccepted: {
-            relaxBox.workDuration = settingsDlg.workDuration*60;
-            relaxBox.relaxDuration = settingsDlg.relaxDuration*60;
+            relaxBox.workDuration = settingsDlg.workDuration;
+            relaxBox.relaxDuration = settingsDlg.relaxDuration;
         }
     }
 
     function showSettings() {
-        settingsDlg.showModal(relaxBox.workDuration/60, relaxBox.relaxDuration/60);
+        settingsDlg.showModal(relaxBox.workDuration, relaxBox.relaxDuration);
     }
 }
