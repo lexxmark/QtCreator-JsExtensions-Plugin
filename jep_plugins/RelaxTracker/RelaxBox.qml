@@ -113,7 +113,7 @@ Rectangle {
         id: contextMenu
         title: "ContextMenu"
         MenuItem {
-            text: "Settings"
+            text: "Settings..."
             onTriggered: showSettings()
         }
     }

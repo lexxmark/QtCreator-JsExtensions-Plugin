@@ -136,16 +136,17 @@ bool JsExtensionsPlugin::initialize(const QStringList &arguments, QString *error
     //
     // setup "JepSettings" action
     //
-    QAction *action = new QAction(tr("Settings..."), this);
+    QAction *action = new QAction(tr("JsExtensionsPlugin settings..."), this);
     Core::Command *cmd = Core::ActionManager::registerAction(action, Constants::ACTION_ID,
                                                              Core::Context(Core::Constants::C_GLOBAL));
     cmd->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+Meta+J")));
     connect(action, SIGNAL(triggered()), this, SLOT(onSettings()));
 
-    Core::ActionContainer *menu = Core::ActionManager::createMenu(Constants::MENU_ID);
-    menu->menu()->setTitle(tr("JsExtensionsPlugin"));
-    menu->addAction(cmd);
-    Core::ActionManager::actionContainer(Core::Constants::M_TOOLS)->addMenu(menu);
+    //Core::ActionContainer *menu = Core::ActionManager::createMenu(Constants::MENU_ID);
+    //menu->menu()->setTitle(tr("JsExtensionsPlugin"));
+    //menu->addAction(cmd);
+    //Core::ActionManager::actionContainer(Core::Constants::M_TOOLS)->addMenu(menu);
+    Core::ActionManager::actionContainer(Core::Constants::M_TOOLS)->addAction(cmd);
 
     //
     // search and load jep plugins

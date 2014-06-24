@@ -5,13 +5,13 @@ import QtQuick.Layouts 1.1
 import QtGraphicalEffects 1.0
 
 Window {
+    id: root
 
     property int workDuration: wd.value
     property int relaxDuration: rd.value
 
     signal accepted
 
-    id: root
     modality: Qt.WindowModal
     visible: false
     title: "Relax Tracker settings"
@@ -34,6 +34,7 @@ Window {
             id: gridLayout
             anchors.leftMargin: 10
             columns: 2
+
             Text {
                 text: "WorkDuration"
             }
@@ -54,7 +55,6 @@ Window {
                 suffix: "min"
                 minimumValue: 1
                 maximumValue: 60
-
             }
         }
         ColumnLayout {
@@ -63,14 +63,14 @@ Window {
             Button {
                 text: "OK"
                 onClicked: {
-                    settingsDlg.accepted();
-                    settingsDlg.close();
+                    root.accepted();
+                    root.close();
                 }
             }
             Button {
                 text: "Cancel"
                 onClicked: {
-                    settingsDlg.close();
+                    root.close();
                 }
             }
         }

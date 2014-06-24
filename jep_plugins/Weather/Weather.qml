@@ -1,101 +1,130 @@
 import QtQuick 2.1
-import QtQuick.XmlListModel 2.0
+import QtQuick.Controls 1.1
 
 Rectangle {
-    id: main
+    id: root
 
-    width: 30
-    height: label.height+4
+    property string apiKey: "79e8f327892ff196b77b400988291a2a"
+    property int cityId: 524901
+    property bool metric: true
+    property string lang: "en"
+
+    //width: 100
+    height: cityName.height+temp.height+icon.height
     color: "gray"
 
-    // see city id at http://weather.yandex.ru/static/cities.xml
-    property int cityId: 7149 // Paris
-    // request weather interval
-    property int reqInterval: 30 // minutes
+    Component.onCompleted: startLoadingWeather()
 
-    XmlListModel {
-        id: model
-        query: "/forecast/fact"
+    Column {
+        Text {
+            id: cityName
+            text: "Loading..."
 
-        XmlRole { name: "temp"; query: "temperature/string()" }
-        XmlRole { name: "type"; query: "weather_condition/@code/string()" }
-//        XmlRole { name: "type"; query: "weather_type_short/string()" }
-    }
-
-    XmlListModel {
-        id: modelCity
-        query: "/forecast"
-
-        XmlRole { name: "city"; query: "@slug/string()" }
-    }
-
-    Text {
-        id: label
-        color: "white"
-        // two empty lines
-        text: "Loading\nweather"
-	}
-
-    Timer {
-        id: requestTempTimer
-        interval: 1000*60*main.reqInterval
-        repeat: true
-        triggeredOnStart: true
-
-        onTriggered: main.requestTemp();
-    }
-
-    Timer {
-        id: waitTempTimer
-        interval: 1000
-
-        onTriggered: main.tryGetTemp();
-    }
-
-    function requestTemp() {
-        var doc = new XMLHttpRequest();
-
-        doc.onreadystatechange = function() {
-            if (doc.readyState === XMLHttpRequest.DONE)
-            {
-                // remove invalid attribute
-                var xmlData = doc.responseText.replace("xmlns=\"http://weather.yandex.ru/forecast\" ", "");
-                model.xml = xmlData;
-                modelCity.xml = xmlData;
-                waitTempTimer.start();
+            MouseArea {
+                anchors.fill: parent
+                hoverEnabled: true
+                onEntered: { cityName.font.underline = true; cityName.color = "blue"; }
+                onExited: { cityName.font.underline = false; cityName.color = "black"; }
+                onClicked: selectCity()
             }
         }
 
-        doc.open("get", "http://export.yandex.ru/weather-ng/forecasts/" + main.cityId.toString() + ".xml");
+        Text {
+            id: temp
+        }
+
+        Rectangle {
+            width: parent.width
+            height: icon.height
+            color: "transparent"
+
+            Image {
+                id: icon
+                height: 50
+            }
+
+            Text {
+                id: weather
+                anchors.bottom: icon.bottom
+                font.bold: true
+                wrapMode: Text.Wrap
+                width: root.width
+                opacity: 0
+
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: 500
+                    }
+                }
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                hoverEnabled: true
+                onEntered: weather.opacity = 1
+                onExited: weather.opacity = 0
+            }
+        }
+    }
+
+    MouseArea {
+        anchors.fill: parent
+        acceptedButtons: Qt.RightButton
+        onClicked: contextMenu.popup()
+    }
+
+    function startLoadingWeather() {
+        cityName.text = "Loading...";
+        temp.text = "";
+        icon.source = "";
+
+        var doc = new XMLHttpRequest();
+        doc.onreadystatechange = function() {
+            if (doc.readyState === XMLHttpRequest.DONE) {
+                if (doc.status === 200)
+                    onWeatherLoaded(doc);
+                else
+                    cityName.text = doc.statusText;
+            }
+        }
+
+        var units = root.metric ? "metric" : "imperial";
+        var url = "http://api.openweathermap.org/data/2.5/weather?id=%1&lang=%2&units=%3&APPID=%4".arg(root.cityId).arg(root.lang).arg(units).arg(root.apiKey);
+        doc.open("get", url);
         doc.setRequestHeader("Content-Encoding", "UTF-8");
         doc.send();
     }
 
-    function tryGetTemp() {
-        if (model.status == XmlListModel.Ready)
-        {
-            if (model.count != 1)
-            {
-                console.log("ambigous data has received.");
-            }
-            else
-            {
-                console.assert(modelCity.status == XmlListModel.Ready);
+    function onWeatherLoaded(doc) {
+        var responseText = doc.responseText;
+        if (responseText.length === 0) {
+            cityName.text = "Loading Failed";
+            return;
+        }
 
-                var text = "%1\u2103 %2\n%3";
-                text = text.arg(model.get(0).temp).arg(modelCity.get(0).city).arg(model.get(0).type);
-                label.text = text;
-            }
+        var rObj = JSON.parse(responseText);
+        if (rObj.cod !== 200) {
+            cityName.text = "%1-'%2'".arg(rObj.cod).arg(rObj.message);
+            return;
         }
-        else if (model.status == XmlListModel.Error)
-        {
-            console.log(model.errorString());
-        }
-        else
-        {
-            waitTempTimer.start();
+
+        cityName.text = "%1 (%2)".arg(rObj.name).arg(rObj.sys.country);
+        var tempSign = root.metric ? "C" : "F";
+        temp.text = "%1 %2".arg(rObj.main.temp).arg(tempSign);
+        icon.source = "http://openweathermap.org/img/w/%1.png".arg(rObj.weather[0].icon);
+        weather.text = rObj.weather[0].description;
+    }
+
+    SelectCityDlg {
+        id: selectCityDlg
+        onAccepted: {
+            root.cityId = cityId;
+            startLoadingWeather();
         }
     }
 
-    Component.onCompleted: requestTempTimer.start();
+    function selectCity() {
+        selectCityDlg.show();
+    }
+
 }
