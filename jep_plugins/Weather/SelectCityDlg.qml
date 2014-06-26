@@ -7,8 +7,6 @@ import QtGraphicalEffects 1.0
 Window {
     id: root
 
-    property int cityId: 0
-
     signal accepted(int cityId)
 
     modality: Qt.WindowModal
@@ -77,6 +75,7 @@ Window {
                             Text {
                                 id: cityName
                                 text: "%1 (%2)".arg(name).arg(sys.country);
+                                width: list.width
 
                                 MouseArea {
                                     anchors.fill: parent

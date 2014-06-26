@@ -68,10 +68,14 @@ signals:
 
 public slots:
     bool loadAPI(QString libFileName);
+    bool include(QString jsFileName);
     void debug(QString str);
 
     QString loadFile(QString fileName);
     bool saveFile(QString fileName, QString content);
+
+    QVariantMap QObject2JsObject(QObject* qObject);
+    void JsObject2QObject(QVariantMap object, QObject* qObject);
 
     QJSValue createQuickView(QString qmlUrl, QObject* parent);
     QJSValue createQObject(QString type, QObject* parent);

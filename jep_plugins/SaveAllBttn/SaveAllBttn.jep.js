@@ -1,31 +1,10 @@
+jepAPI.include("../JepUtils.js");
+
 var pluginDescription = "Adds 'Save All' button to mode panel";
 
-function createSpacer(space) {
-    var spacer = jepAPI.createQObject("QWidget", modeManager);
-    spacer.minimumHeight = space;
-    return spacer;
-}
-
-function createSaveAllButton() {
-
-    var bttn = jepAPI.createQObject("QToolButton", modeManager);
-    bttn.toolButtonStyle = 2;
-    bttn.autoRaise = true;
-    bttn.styleSheet = "QToolButton {color: white; }";
-    // disable button minimum width
-    bttn.sizePolicy = jepAPI.sizePolicy(13, 0, 1);
-
-    var cmd = actionManager.command("QtCreator.SaveAll");
-    var act = cmd.action();
-    bttn.setDefaultAction(act);
-
-    return bttn;
-}
-
 function initialize() {
-
-    modeManager.addWidget(createSaveAllButton());
-    modeManager.addWidget(createSpacer(10));
+    modeManager.addWidget(createActionToolButton("QtCreator.SaveAll"));
+    modeManager.addWidget(createModeSpacer(10));
 
     //jepAPI.dumpCommands();
 

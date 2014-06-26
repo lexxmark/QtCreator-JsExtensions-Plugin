@@ -473,6 +473,26 @@ void JsPlugin::debug(QString str)
     }
 }
 
+bool JsPlugin::include(QString jsFileName)
+{
+    QString content = loadFile(jsFileName);
+
+    if (content.isEmpty()) {
+        debug(tr("cannot include file: %1.").arg(jsFileName));
+        return false;
+    }
+
+    QJSValue result = m_jsEngine->evaluate(content, jsFileName);
+
+    // dump error
+    if (result.isError()) {
+        debug(tr("include failed: %1.").arg(result.toString()));
+        return false;
+    }
+
+    return true;
+}
+
 QString JsPlugin::loadFile(QString fileName)
 {
     QFileInfo fi(QFileInfo(m_pluginPath).absolutePath(), fileName);
@@ -499,5 +519,27 @@ bool JsPlugin::saveFile(QString fileName, QString content)
     }
 
     return false;
+}
+
+QVariantMap JsPlugin::QObject2JsObject(QObject* qObject)
+{
+    QVariantMap map;
+    const QMetaObject* metaObject = qObject->metaObject();
+    for (int i = 0, n = metaObject->propertyCount(); i < n; ++i) {
+        map[metaObject->property(i).name()] = metaObject->property(i).read(qObject);
+    }
+
+    return map;
+}
+
+void JsPlugin::JsObject2QObject(QVariantMap object, QObject* qObject)
+{
+    const QMetaObject* metaObject = qObject->metaObject();
+
+    foreach (QString key, object.keys()) {
+        int propertyIndex = metaObject->indexOfProperty(key.toLatin1().data());
+        if (propertyIndex != -1)
+            metaObject->property(propertyIndex).write(qObject, object[key]);
+    }
 }
 
