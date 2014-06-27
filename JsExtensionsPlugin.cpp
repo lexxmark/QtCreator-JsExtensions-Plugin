@@ -136,16 +136,10 @@ bool JsExtensionsPlugin::initialize(const QStringList &arguments, QString *error
     //
     // setup "JepSettings" action
     //
-    QAction *action = new QAction(tr("JsExtensionsPlugin settings..."), this);
+    QAction *action = new QAction(tr("JsExtensionsPlugin..."), this);
     Core::Command *cmd = Core::ActionManager::registerAction(action, Constants::ACTION_ID,
                                                              Core::Context(Core::Constants::C_GLOBAL));
-    cmd->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+Meta+J")));
     connect(action, SIGNAL(triggered()), this, SLOT(onSettings()));
-
-    //Core::ActionContainer *menu = Core::ActionManager::createMenu(Constants::MENU_ID);
-    //menu->menu()->setTitle(tr("JsExtensionsPlugin"));
-    //menu->addAction(cmd);
-    //Core::ActionManager::actionContainer(Core::Constants::M_TOOLS)->addMenu(menu);
     Core::ActionManager::actionContainer(Core::Constants::M_TOOLS)->addAction(cmd);
 
     //
@@ -248,7 +242,7 @@ void JsExtensionsPlugin::onSettings()
         dlg.model2Plugins(m_pluginInfos);
         //Core::ICore::showWarningWithOptions("Attention", "Please relaunch QtCreator to apply settings.");
         //Core::MessageManager::showOutputPane();
-        Core::MessageManager::write("Relaunch QtCreator to apply JsExtensionsPlugin settings.", Core::MessageManager::Flash);
+        Core::MessageManager::write("Relaunch QtCreator to apply JsExtensionsPlugin settings.", Core::MessageManager::ModeSwitch);
     }
 
     settings->setValue("geometry", dlg.saveGeometry());
