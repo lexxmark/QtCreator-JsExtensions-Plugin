@@ -46,7 +46,8 @@ import "CalculatorCore/calculator.js" as CalcEngine
 Rectangle {
     id: window
 
-    width: 200; height: 300
+    width: 200
+    height: 300
     color: "#282828"
 
     property string rotateLeft: "\u2939"
@@ -57,7 +58,21 @@ Rectangle {
     property string squareRoot : "\u221a"
     property string plusminus : "\u00b1"
 
-    function doOp(operation) { CalcEngine.doOperation(operation) }
+    function doOp(operation) {
+        if (operation === "Paste") {
+            var text = jepAPI.getClipboard();
+            var value = parseFloat(text);
+            if (!isNaN(value)) {
+                display.text = text;
+            }
+        }
+        else if (operation === "Copy") {
+            jepAPI.setClipboard(display.text);
+        }
+        else {
+            CalcEngine.doOperation(operation)
+        }
+    }
 
     Item {
         id: main
@@ -82,6 +97,47 @@ Rectangle {
                 id: display
                 width: box.width-3
                 height: 64
+
+                MouseArea {
+                    anchors.fill: parent
+                    hoverEnabled: true
+
+                    onEntered: bttns.opacity = 1
+                    onExited: bttns.opacity = 0
+
+                }
+
+                Row {
+                    id: bttns
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: 10
+                    opacity: 0
+
+                    Behavior on opacity {
+                        NumberAnimation { duration: 500 }
+                    }
+
+                    Button {
+                        id: copyBttn
+
+                        width: display.width/4
+                        height: display.height/2
+
+                        color: "red"
+                        operation: "Copy"
+                    }
+
+                    Button {
+                        id: pasteBttn
+
+                        width: display.width/4
+                        height: display.height/2
+
+                        color: "red"
+                        operation: "Paste"
+                    }
+                }
+
             }
 
             Column {
@@ -136,7 +192,7 @@ Rectangle {
                 }
             }
         }
-
+/*
         states: [
             State {
                 name: "orientation " + Orientation.Landscape
@@ -157,6 +213,6 @@ Rectangle {
                 RotationAnimation { direction: RotationAnimation.Shortest; duration: 300; easing.type: Easing.InOutQuint  }
                 NumberAnimation { properties: "x,y,width,height"; duration: 300; easing.type: Easing.InOutQuint }
             }
-        }
+        }*/
     }
 }

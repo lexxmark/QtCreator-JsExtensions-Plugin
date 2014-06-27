@@ -1,4 +1,8 @@
 #include "JepAPI.h"
+
+#include <QApplication>
+#include <QClipboard>
+
 #include <QMenu>
 #include <QAction>
 #include <QPushButton>
@@ -519,6 +523,18 @@ bool JsPlugin::saveFile(QString fileName, QString content)
     }
 
     return false;
+}
+
+QString JsPlugin::getClipboard()
+{
+    QClipboard *clipboard = QApplication::clipboard();
+    return clipboard->text();
+}
+
+void JsPlugin::setClipboard(QString content)
+{
+    QClipboard *clipboard = QApplication::clipboard();
+    clipboard->setText(content);
 }
 
 QVariantMap JsPlugin::QObject2JsObject(QObject* qObject)

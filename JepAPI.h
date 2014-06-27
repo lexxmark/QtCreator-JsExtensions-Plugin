@@ -74,6 +74,9 @@ public slots:
     QString loadFile(QString fileName);
     bool saveFile(QString fileName, QString content);
 
+    QString getClipboard();
+    void setClipboard(QString content);
+
     QVariantMap QObject2JsObject(QObject* qObject);
     void JsObject2QObject(QVariantMap object, QObject* qObject);
 
