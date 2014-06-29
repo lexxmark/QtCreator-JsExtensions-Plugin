@@ -24,9 +24,13 @@ public:
     void plugins2Model(const QList<JsPluginInfo>& plugins);
     void model2Plugins(QList<JsPluginInfo>& plugins);
 
+private slots:
+    void onSettings();
+
 private:
     QScopedPointer<Ui::JepPluginsDialog> ui;
     QStandardItemModel m_model;
+    QList<JsPluginInfo> m_plugins;
 };
 
 } // namespace Internal

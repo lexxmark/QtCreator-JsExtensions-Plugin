@@ -4,6 +4,10 @@ QtObject {
     id: settings
 
     property string settingsPath: ""
+    property bool autoSave: true
+    property bool loaded: false
+
+    signal beforeSave()
 
     Component.onCompleted: {
         // NOTE:
@@ -16,13 +20,14 @@ QtObject {
         // save() function couldn't be called at onDestruction
         // because jepAPI object can be null at this moment
 
-        // register settings saving at plugin shutdown
-        jepAPI.aboutToShutdown.connect(settings.save);
+        if (autoSave)
+            // register settings saving at plugin shutdown
+            jepAPI.aboutToShutdown.connect(settings.save);
     }
 
     Component.onDestruction: {
         // if jepAPI still exists -> disconnect and save
-        if (jepAPI) {
+        if (jepAPI && autoSave) {
             jepAPI.aboutToShutdown.disconnect(settings.save);
             settings.save();
         }
@@ -49,9 +54,13 @@ QtObject {
             // remove possible <system> properties
             delete settingsJsObject.objectName;
             delete settingsJsObject.settingsPath;
+            delete settingsJsObject.loaded;
+            delete settingsJsObject.autoSave;
 
             // copy attributes to settings properties
             jepAPI.JsObject2QObject(settingsJsObject, settings);
+
+            loaded = true;
         }
         catch (err) {
             jepAPI.debug("Error while parsing '%1' file: '%2'".arg(settingsPath).arg(err.message));
@@ -59,6 +68,13 @@ QtObject {
     }
 
     function save() {
+        // fire signal
+        beforeSave();
+
+        if (!loaded) {
+            jepAPI.debug("Warning: settings to be saved was never loaded.");
+        }
+
         if (settingsPath.length === 0) {
             jepAPI.debug("Error: settings path is not defined.");
             return;
@@ -70,6 +86,8 @@ QtObject {
         // remove <system> properties
         delete settingsJsObject.objectName;
         delete settingsJsObject.settingsPath;
+        delete settingsJsObject.loaded;
+        delete settingsJsObject.autoSave;
 
         jepAPI.saveFile(settingsPath, JSON.stringify(settingsJsObject));
     }

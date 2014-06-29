@@ -64,10 +64,12 @@ void JsExtensionsPlugin::loadPlugins(const QDir& dir, QSettings* settings, QStri
                 // collect all plugin infos
                 m_pluginInfos.append(jsPlugin->info());
 
-                if (jsPlugin->info().isEnabled)
-                {
+                if (jsPlugin->info().isEnabled) {
                     // save plugin
                     m_plugins.append(jsPlugin.take());
+
+                    // save link to plugin
+                    m_pluginInfos.back().plugin = m_plugins.back();
                 }
             }
         }

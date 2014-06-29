@@ -28,6 +28,25 @@ class QQuickView;
 namespace JsExtensions {
 namespace Internal {
 
+class MyEventFilter: public QObject
+{
+    Q_OBJECT
+
+public:
+    MyEventFilter(QDialog* dlg, QWidget* w, QQuickView *v);
+    ~MyEventFilter();
+
+protected:
+    bool eventFilter(QObject *sender, QEvent *event) override;
+
+private:
+    QDialog *m_dlg;
+    QWidget *m_w;
+    QQuickView *m_v;
+};
+
+class JsPlugin;
+
 struct JsPluginInfo
 {
     QString name;
@@ -35,12 +54,16 @@ struct JsPluginInfo
     qint32 priority;
     bool isEnabled;
     bool trace;
+    JsPlugin* plugin;
 
-    JsPluginInfo(): priority(0), isEnabled(true), trace(false)
+    JsPluginInfo(): priority(0), isEnabled(true), trace(false), plugin(nullptr)
     {}
 
-    void save(QSettings* settings);
+    void save(QSettings* settings) const;
     void restore(QSettings* settings);
+
+    bool hasSettings();
+    bool invokeSettings(QObject *parent, QString& errors);
 };
 
 class JsPlugin: public QObject
@@ -81,6 +104,7 @@ public slots:
     void JsObject2QObject(QVariantMap object, QObject* qObject);
 
     QJSValue createQuickView(QString qmlUrl, QObject* parent);
+    int quickDialogExec(QString qmlUrl, QObject* parent);
     QJSValue createQObject(QString type, QObject* parent);
 
     QJSValue point(int x, int y) { return m_jsEngine->toScriptValue(QPoint(x, y)); }
@@ -757,7 +781,17 @@ public slots:
         return new GCommand(m_gContext, m_owner->registerAction(action, str2id(id), ctx, scriptable));
     }
 
-    JsExtensions::Internal::GCommand *command(QString id) { G_TRACE; return new GCommand(m_gContext, m_owner->command(str2id(id))); }
+    JsExtensions::Internal::GCommand *command(QString id)
+    {
+        G_TRACE;
+        Core::Command* cmd = m_owner->command(str2id(id));
+        if (!cmd) {
+            m_gContext.plugin->debug(QString("Cannot create command with id: %1").arg(id));
+            return nullptr;
+        }
+
+        return new GCommand(m_gContext, cmd);
+    }
     JsExtensions::Internal::GActionContainer *actionContainer(QString id) { G_TRACE; return new GActionContainer(m_gContext, m_owner->actionContainer(str2id(id))); }
 
     QJSValue commands()

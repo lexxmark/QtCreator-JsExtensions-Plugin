@@ -3,7 +3,7 @@ var pluginPriority = 2;
 var pluginDescription = "Calculator widget on navigation panel";
 
 function createCalculator() {
-    return jepAPI.createQuickView("calculator.qml", null);
+    return jepAPI.createQuickView("Calculator.qml", null);
 }
 
 function initialize() {

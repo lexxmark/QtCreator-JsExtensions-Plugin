@@ -7,9 +7,9 @@ function createModeSpacer(space) {
 
 function createActionToolButton(actionName) {
     // look for an action
-    var cmd = actionManager.command("QtCreator.SaveAll");
+    var cmd = actionManager.command(actionName);
     if (cmd === null) {
-        jepAPI.debug("Cannot find such action: %1".arg(actionName));
+        jepAPI.debug("Cannot find such action: " + actionName);
         return null;
     }
 

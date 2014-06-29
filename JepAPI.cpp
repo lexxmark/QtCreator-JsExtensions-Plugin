@@ -17,11 +17,35 @@
 
 #include <QtQml>
 #include <QQuickView>
+#include <QQuickItem>
 
 #include <extensionsystem/iplugin.h>
 #include <extensionsystem/pluginmanager.h>
 
 using namespace JsExtensions::Internal;
+
+MyEventFilter::MyEventFilter(QDialog* dlg, QWidget* w, QQuickView *v)
+    : QObject(dlg),
+      m_dlg(dlg), m_w(w), m_v(v)
+{
+    if (m_v->status() == QQuickView::Ready) {
+        QObject::connect(m_v->rootObject(), SIGNAL(close(int)), m_dlg, SLOT(done(int)));
+    }
+}
+
+MyEventFilter::~MyEventFilter()
+{
+
+}
+
+bool MyEventFilter::eventFilter(QObject *sender, QEvent *event)
+{
+    if (event->type() == QEvent::Resize) {
+        m_w->resize(m_dlg->size());
+    }
+
+    return true;
+}
 
 static int coreTypeId = qmlRegisterType<GCore>();
 static int messageManagerTypeId = qmlRegisterType<GMessageManager>();
@@ -34,7 +58,7 @@ static int actionManagerTypeId = qmlRegisterType<GActionManager>();
 static int editorManagerTypeId = qmlRegisterType<GEditorManager>();
 static int actionTypeId = qmlRegisterType<QAction>();
 
-void JsPluginInfo::save(QSettings* settings)
+void JsPluginInfo::save(QSettings* settings) const
 {
     settings->beginGroup(QString("Plugin_%1").arg(name));
     {
@@ -59,6 +83,39 @@ void JsPluginInfo::restore(QSettings* settings)
             trace = settings->value("trace", trace).toBool();
     }
     settings->endGroup();
+}
+
+bool JsPluginInfo::hasSettings()
+{
+    if (!plugin)
+        return false;
+
+    QJSValue settingsFn = plugin->jsEngine()->evaluate("settings");
+    if (!settingsFn.isCallable())
+        return false;
+
+    return true;
+}
+
+bool JsPluginInfo::invokeSettings(QObject *parent, QString &errors)
+{
+    if (!plugin)
+        return false;
+
+    QJSValue settingsFn = plugin->jsEngine()->evaluate("settings");
+    if (!settingsFn.isCallable())
+        return false;
+
+    QJSValueList args;
+    args << plugin->jsEngine()->toScriptValue(parent);
+
+    QJSValue res = settingsFn.call(args);
+    if (res.isError()) {
+        errors += res.toString();
+        return false;
+    }
+
+    return true;
 }
 
 
@@ -307,6 +364,18 @@ QJSValue JsPlugin::createQuickView(QString qmlUrl, QObject* parent)
     return res;
 }
 
+int JsPlugin::quickDialogExec(QString qmlUrl, QObject* parent)
+{
+    G_TRACE2(this);
+
+    QDialog dlg(qobject_cast<QWidget*>(parent));
+    QPair<QWidget*, QQuickView*> result = createQuickViewWidget(qmlUrl, &dlg);
+//    QSize size = result.first->size();
+//    result.first->setGeometry(0, 0, size.width(), size.height());
+    dlg.installEventFilter(new MyEventFilter(&dlg, result.first, result.second));
+    return dlg.exec();
+}
+
 QJSValue JsPlugin::createQObject(QString type, QObject* parent)
 {
     G_TRACE2(this);
@@ -364,6 +433,10 @@ Core::NavigationView GNavigationWidgetFactory::createWidget()
     else
     {
         m_owner->debug("NavigationWidgetFactory: factory is not string or function.");
+    }
+
+    if (!nv.widget) {
+        nv.widget = new QLabel("<Cannot create widget>");
     }
 
     return nv;

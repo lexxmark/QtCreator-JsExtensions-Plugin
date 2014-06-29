@@ -23,23 +23,20 @@ Window {
         ColumnLayout {
             anchors.top: parent.top
 
-            GroupBox {
-                title: "Temperature units"
-                Column {
-                    spacing: 2
+            Column {
+                spacing: 2
 
-                    ExclusiveGroup { id: group }
+                ExclusiveGroup { id: group }
 
-                    RadioButton {
-                        id: celsiusBttn
-                        text: "Celsius"
-                        exclusiveGroup: group
-                    }
-                    RadioButton {
-                        id: fahrenheitBttn
-                        text: "Fahrenheit"
-                        exclusiveGroup: group
-                    }
+                RadioButton {
+                    id: celsiusBttn
+                    text: "Celsius"
+                    exclusiveGroup: group
+                }
+                RadioButton {
+                    id: fahrenheitBttn
+                    text: "Fahrenheit"
+                    exclusiveGroup: group
                 }
             }
 
