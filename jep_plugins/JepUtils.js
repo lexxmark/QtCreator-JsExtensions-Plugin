@@ -32,3 +32,40 @@ function createActionToolButton(actionName) {
 
     return bttn;
 }
+
+// loads JSON object from <url>
+// <onLoaded> is callback function(loadedObj, errorStr)
+function loadJSON(url, onLoaded) {
+
+    function onDocLoaded(doc, onLoaded) {
+        var responseText = doc.responseText;
+        if (responseText.length === 0) {
+            onLoaded(null, "Response is empty");
+            return;
+        }
+
+        try {
+            // try to parse
+            var loadedObj = JSON.parse(responseText);
+            onLoaded(loadedObj, "");
+        }
+        catch (err) {
+            onLoaded(null, err.message);
+        }
+    }
+
+    var doc = new XMLHttpRequest();
+    doc.onreadystatechange = function() {
+        if (doc.readyState === XMLHttpRequest.DONE) {
+            if (doc.status === 200)
+                onDocLoaded(doc, onLoaded);
+            else
+                onLoaded(null, doc.statusText);
+        }
+    }
+
+    doc.open("get", url);
+    doc.setRequestHeader("Content-Encoding", "UTF-8");
+    doc.send();
+}
+
