@@ -1,7 +1,3 @@
-* Settings dialog to switch on/off JEP plugins; reorder; see details text; set parameters
 * Add wrappers to all Core manager classes
-* Add function to run external program
-* Jenkins JEP plugin (like https://github.com/MichaelSp/QtCreator-Jenkins-Plugin)
 * JIRA JEP plugin (notification of upcoming issues, add issue bttn)
 * Git JEP plugin (???)
-* Copy/Paste text

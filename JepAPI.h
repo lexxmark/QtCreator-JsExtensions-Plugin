@@ -97,6 +97,8 @@ public slots:
     QString loadFile(QString fileName);
     bool saveFile(QString fileName, QString content);
 
+    bool execute(QString cmd);
+
     QString getClipboard();
     void setClipboard(QString content);
 

@@ -598,6 +598,11 @@ bool JsPlugin::saveFile(QString fileName, QString content)
     return false;
 }
 
+bool JsPlugin::execute(QString cmd)
+{
+    return QProcess::startDetached(cmd);
+}
+
 QString JsPlugin::getClipboard()
 {
     QClipboard *clipboard = QApplication::clipboard();

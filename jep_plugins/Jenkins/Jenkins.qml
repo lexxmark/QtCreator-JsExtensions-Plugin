@@ -11,22 +11,40 @@ Rectangle {
 
     color: "gray"
 
-    Text {
-        id: message
-        anchors.fill: parent
-        anchors.verticalCenter: parent.verticalCenter
-        text: "Loading..."
+    JepSettings {
+        id: settings
+        settingsPath: "Jenkins.settings"
+
+        property string server: "http://build.kde.org"
+        property string imagesPath: "http://build.kde.org/static/6cf0c7e2/images/16x16/"
+        property string view: "Unstable" //"Plasma%20Next%20+%20Apps"
+        property int lastJobs: 3
+        property int refreshPeriod: 10 // min
     }
 
     ListView {
         id: jobsList
         anchors.fill: parent
-        opacity: 0
 
         header: Component {
             Text {
                 id: jobsHeader
                 text: "None"
+
+                property string viewName: ""
+
+                onLinkActivated: {
+                    settingsDlg.server = settings.server;
+                    settingsDlg.show();
+                }
+
+                MouseArea {
+                    acceptedButtons: Qt.NoButton
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onEntered: jobsHeader.text = "<a href=\"%1\">%1</a>".arg(jobsHeader.viewName)
+                    onExited: jobsHeader.text = jobsHeader.viewName
+                }
             }
         }
 
@@ -38,66 +56,85 @@ Rectangle {
             Item {
                 height: jobName.height+10
 
-                Rectangle {
-                    id: jobStatus
-                    height: jobName.height
-                    width: jobName.height
-                    radius: jobName.height/2
+                Image {
+                    id: jobImage
                     anchors.verticalCenter: parent.verticalCenter
-
-                    color: Qt.darker(jobsModel.get(index).color, 2)
+                    source: "%1%2.png".arg(settings.imagesPath).arg(model.color.split("_")[0])
                 }
 
                 Text {
                     id: jobName
-                    anchors.left: jobStatus.right
+                    anchors.left: jobImage.right
                     anchors.leftMargin: 5
                     anchors.verticalCenter: parent.verticalCenter
 
-                    text: name
+                    text: model.name
+
+                    onLinkActivated: Qt.openUrlExternally(link)
+
+                    MouseArea {
+                        acceptedButtons: Qt.NoButton
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onEntered: jobName.text = "<a href=\"%1\">%2</a>".arg(model.url).arg(model.name)
+                        onExited: jobName.text = model.name
+                    }
                 }
             }
         }
+
+        function setHeader(text) {
+            jobsList.headerItem.text = text;
+            jobsList.headerItem.viewName = text;
+        }
     }
 
-    //JepSettings {
-    QtObject {
-        id: settings
-        //settingsPath: "Jenkins.settings"
-
-        // /api/json?pretty=true
-
-        property string server: "http://build.kde.org"
-        property string view: "Plasma%20Next%20+%20Apps"
-        property int lastJobs: 3
-        property int refreshPeriod: 10 // min
+    Component.onCompleted: {
+        settings.load();
+        startLoadInfo();
     }
-
-    Component.onCompleted: startLoadInfo()
 
     function startLoadInfo() {
-        message.opacity = 1;
+
+        jobsList.setHeader("Loading...");
+        jobsModel.clear();
+
         var url = "%1/view/%2/api/json?pretty=true".arg(settings.server).arg(settings.view);
         JepUtils.loadJSON(url, onLoaded);
     }
 
     function onLoaded(obj, error) {
         if (obj === null) {
-            message.text = error;
+            jobsList.setHeader(error);
             return;
         }
 
         if (obj.jobs.length === 0) {
-            message.text = "No jobs available";
+            jobsList.setHeader("No jobs available");
             return;
         }
 
-        jobsList.headerItem.text = obj.name;
-        jobsModel.clear();
+        jobsList.setHeader(obj.name);
+
         var jobs = obj.jobs.slice(0, settings.lastJobs);
         jobsModel.append(jobs);
+    }
 
-        message.opacity = 0;
-        jobsList.opacity = 1;
+    JenkinsSettingsDlg {
+        id: settingsDlg
+        onAccepted: {
+            settings.server = server;
+            settings.view = view;
+            startLoadInfo();
+        }
+    }
+
+    Timer {
+        id: time
+        running: true
+        repeat: true
+        interval: settings.refreshPeriod*60*1000
+
+        onTriggered: startLoadInfo()
     }
 }
