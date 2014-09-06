@@ -32,7 +32,7 @@ function initialize() {
 }
 ```
 
-There are two optional functions **extensionsInitialized()** and **aboutToShutdown()** that will be called in **JsExtensionsPlugin::extensionsInitialized** and **JsExtensionsPlugin::aboutToShutdown** functions. Also there are three optional variables to manage JEP plugins:
+There are two optional functions **extensionsInitialized()** and **aboutToShutdown()** that will be called in **JsExtensionsPlugin::extensionsInitialized** and **JsExtensionsPlugin::aboutToShutdown** functions. Also there are four optional variables to manage JEP plugins:
 
 1. **pluginDescription** - short text description of the plugin (for example "var pluginDescription = "My very usefull plugin";")
 1. **pluginPriority** - numeric variable to change loading order (for example "var pluginPriority = 1;")
@@ -44,7 +44,6 @@ In the global object of the JavaScript/QML environment were several objects inje
 1. **core** - wraps Core::ICore
 2. **messageManager** - wraps Core::MessageManager
 3. **actionManager** - wraps Core::ActionManager
-4. **editorManager** - wraps Core::EditorManager
 5. **modeManager** - wraps Core::ModeManager
 6. **jepAPI** - collection of utility functions
 
@@ -52,6 +51,4 @@ In addition to singleton objects there are wrappers for some other classes:
 
 1. Core::ActionContainer
 2. Core::Command
-3. Core::IDocument
 
-**NOTE: "Clocks" plugin was disabled in linux by default. Two parallel QML windows with animations will lead to crash see [QTBUG-38221](https://bugreports.qt-project.org/browse/QTBUG-38221)**

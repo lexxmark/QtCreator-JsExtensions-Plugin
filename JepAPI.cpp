@@ -38,7 +38,7 @@ MyEventFilter::~MyEventFilter()
 
 }
 
-bool MyEventFilter::eventFilter(QObject *sender, QEvent *event)
+bool MyEventFilter::eventFilter(QObject *, QEvent *event)
 {
     if (event->type() == QEvent::Resize) {
         m_w->resize(m_dlg->size());
@@ -52,10 +52,8 @@ static int messageManagerTypeId = qmlRegisterType<GMessageManager>();
 static int modeManagerTypeId = qmlRegisterType<GModeManager>();
 static int commandTypeId = qmlRegisterType<GCommand>();
 static int editorCommandTypeId = qmlRegisterType<Core::IEditor>();
-static int documentCommandTypeId = qmlRegisterType<GDocument>();
 static int actionContainerTypeId = qmlRegisterType<GActionContainer>();
 static int actionManagerTypeId = qmlRegisterType<GActionManager>();
-static int editorManagerTypeId = qmlRegisterType<GEditorManager>();
 static int actionTypeId = qmlRegisterType<QAction>();
 
 void JsPluginInfo::save(QSettings* settings) const
@@ -263,9 +261,6 @@ void JsPlugin::installJsContext(QJSEngine* jsEngine)
     GActionManager* am(new GActionManager(gContext));
     globalObject.setProperty("actionManager", jsEngine->newQObject(am));
 
-    GEditorManager* em(new GEditorManager(gContext));
-    globalObject.setProperty("editorManager", jsEngine->newQObject(em));
-
     GModeManager* mm(new GModeManager(gContext));
     globalObject.setProperty("modeManager", jsEngine->newQObject(mm));
 
@@ -289,9 +284,6 @@ void JsPlugin::installQmlContext(QQmlEngine* qmlEngine)
 
     QObject* am(new GActionManager(gContext));
     context->setContextProperty("actionManager", am);
-
-    QObject* em(new GEditorManager(gContext));
-    context->setContextProperty("editorManager", em);
 
     QObject* mm(new GModeManager(gContext));
     context->setContextProperty("modeManager", mm);
@@ -370,8 +362,6 @@ int JsPlugin::quickDialogExec(QString qmlUrl, QObject* parent)
 
     QDialog dlg(qobject_cast<QWidget*>(parent));
     QPair<QWidget*, QQuickView*> result = createQuickViewWidget(qmlUrl, &dlg);
-//    QSize size = result.first->size();
-//    result.first->setGeometry(0, 0, size.width(), size.height());
     dlg.installEventFilter(new MyEventFilter(&dlg, result.first, result.second));
     return dlg.exec();
 }
@@ -462,18 +452,7 @@ void JsPlugin::dumpPluginManagerObjects()
     }
 }
 
-void JsPlugin::dumpCommands()
-{
-    QList<Core::Command*> commands = Core::ActionManager::commands();
-    int i = 0;
-    foreach (Core::Command* cmd, commands)
-    {
-        debug(QString("%1: <%2> (%3)").arg(i++).arg(cmd->id().toString()).arg(cmd->description()));
-    }
-}
-
-
-bool JsPlugin::loadAPI(QString libFileName)
+bool JsPlugin::loadLib(QString libFileName)
 {
     G_TRACE2(this);
 
@@ -485,21 +464,21 @@ bool JsPlugin::loadAPI(QString libFileName)
     }
 
     // library should export C function
-    // extern "C" MY_EXPORT bool loadAPI(QJSEngine* jsEngine, QString* errors)
-    typedef bool (*LoadAPIFunction)(QJSEngine*, QString*);
+    // extern "C" MY_EXPORT bool loadLib(QJSEngine* jsEngine, QString* errors)
+    typedef bool (*LoadLibFunction)(QJSEngine*, QString*);
 
-    LoadAPIFunction loadAPIFunc = (LoadAPIFunction)library.resolve("loadAPI");
-    if (!loadAPIFunc)
+    LoadLibFunction loadLibFunc = (LoadLibFunction)library.resolve("loadLib");
+    if (!loadLibFunc)
     {
-        debug(tr("Cannot resolve 'loadAPI' function."));
+        debug(tr("Cannot resolve 'loadLib' function."));
         library.unload();
         return false;
     }
 
     QString errors;
-    if (!loadAPIFunc(m_jsEngine.data(), &errors))
+    if (!loadLibFunc(m_jsEngine.data(), &errors))
     {
-        debug(tr("'loadAPI' function failed (%1).").arg(errors));
+        debug(tr("'loadLib' function failed (%1).").arg(errors));
         library.unload();
         return false;
     }

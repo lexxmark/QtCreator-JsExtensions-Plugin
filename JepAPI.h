@@ -37,7 +37,7 @@ public:
     ~MyEventFilter();
 
 protected:
-    bool eventFilter(QObject *sender, QEvent *event) override;
+    bool eventFilter(QObject *, QEvent *event) override;
 
 private:
     QDialog *m_dlg;
@@ -90,7 +90,7 @@ signals:
     void aboutToShutdown();
 
 public slots:
-    bool loadAPI(QString libFileName);
+    bool loadLib(QString libFileName);
     bool include(QString jsFileName);
     void debug(QString str);
 
@@ -117,7 +117,6 @@ public slots:
     bool registerNavigationWidgetFactory(QJSValue factory, QString displayName, int priority, QString id, QString activationSequence);
 
     void dumpPluginManagerObjects();
-    void dumpCommands();
 
 private:
     bool enableDebug();
@@ -220,12 +219,6 @@ public slots:
 
     QJSValue gOwner() { G_TRACE; return wrapObject(m_owner); }
 
-/*
-    static void showNewItemDialog(const QString &title,
-                                  const QList<IWizard *> &wizards,
-                                  const QString &defaultLocation = QString(),
-                                  const QVariantMap &extraVariables = QVariantMap());
-*/
     bool showOptionsDialog(QString group, QString page, QWidget *parent) { G_TRACE; return m_owner->showOptionsDialog(str2id(group), str2id(page), parent); }
     QString msgShowOptionsDialog() { G_TRACE; return m_owner->msgShowOptionsDialog(); }
 
@@ -239,10 +232,6 @@ public slots:
         return m_owner->showWarningWithOptions(title, text, details, str2id(settingsCategory), str2id(settingsId), parent);
     }
 
-    //static QSettings *settings(QSettings::Scope scope = QSettings::UserScope);
-
-    //static SettingsDatabase *settingsDatabase();
-    //static QPrinter *printer();
     QString userInterfaceLanguage() { G_TRACE; return m_owner->userInterfaceLanguage(); }
 
     QString resourcePath() { G_TRACE; return m_owner->resourcePath(); }
@@ -256,15 +245,6 @@ public slots:
     QJSValue mainWindow() { G_TRACE; return m_gContext.jsEngine->toScriptValue(m_owner->mainWindow()); }
     QJSValue dialogParent() { G_TRACE; return m_gContext.jsEngine->toScriptValue(m_owner->dialogParent()); }
     QJSValue statusBar() { G_TRACE; return m_gContext.jsEngine->toScriptValue(m_owner->statusBar()); }
-    /* Raises and activates the window for the widget. This contains workarounds for X11. */
-    //static void raiseWindow(QWidget *widget);
-
-    //static IContext *currentContextObject();
-    // Adds and removes additional active contexts, these contexts are appended
-    // to the currently active contexts.
-    //static void updateAdditionalContexts(const Context &remove, const Context &add);
-    //static void addContextObject(IContext *context);
-    //static void removeContextObject(IContext *context);
 /*
     enum OpenFilesFlags {
         None = 0,
@@ -277,8 +257,6 @@ public slots:
     void openFiles(const QStringList &fileNames, int flags) { G_TRACE; m_owner->openFiles(fileNames, (Core::ICore::OpenFilesFlags)flags); }
 
     void emitNewItemsDialogRequested() { G_TRACE; m_owner->emitNewItemsDialogRequested(); }
-
-    void saveSettings() { G_TRACE; m_owner->saveSettings(); }
 
 private:
     Core::ICore* m_owner;
@@ -318,311 +296,6 @@ public slots:
 
 private:
     Core::MessageManager* m_owner;
-};
-
-
-class GDocument : public GWrapper
-{
-    Q_OBJECT
-
-public:
-    GDocument(GContext gContext, Core::IDocument *owner)
-        : GWrapper(gContext),
-          m_owner(owner)
-    {
-        G_TRACE;
-        Q_ASSERT(m_owner);
-    }
-    ~GDocument() { G_TRACE; }
-
-    Core::IDocument* owner() { return m_owner; }
-
-public slots:
-
-    QJSValue gOwner() { G_TRACE; return wrapObject(m_owner); }
-
-//    void setId(QString id) { G_TRACE; m_owner->setId(str2id(id)); }
-//    QString id() const { G_TRACE; return id2str(m_owner->id()); }
-
-    QJSValue save(const QString &fileName /*= QString()*/, bool autoSave/* = false*/)
-    {
-        G_TRACE;
-        QString errors;
-        if (m_owner->save(&errors, fileName, autoSave))
-        {
-            return QJSValue(true);
-        }
-        else
-        {
-            qDebug("%s", errors.toLatin1().data());
-            return QJSValue(false);
-        }
-    }
-
-    bool setContents(const QByteArray &contents) { G_TRACE; return m_owner->setContents(contents); }
-
-    QString filePath() const { G_TRACE; return m_owner->filePath(); }
-    void setFilePath(const QString &filePath) { G_TRACE; m_owner->setFilePath(filePath); }
-    QString displayName() const { G_TRACE; return m_owner->displayName(); }
-    void setDisplayName(const QString &name) { G_TRACE; m_owner->setDisplayName(name); }
-
-    bool isFileReadOnly() const { G_TRACE; return m_owner->isFileReadOnly(); }
-    bool isTemporary() const { G_TRACE; return m_owner->isTemporary(); }
-    void setTemporary(bool temporary) { G_TRACE; m_owner->setTemporary(temporary); }
-
-    QString defaultPath() const { G_TRACE; return m_owner->defaultPath(); }
-    QString suggestedFileName() const { G_TRACE; return m_owner->suggestedFileName(); }
-    QString mimeType() const { G_TRACE; return m_owner->mimeType(); }
-
-    bool shouldAutoSave() const { G_TRACE; return m_owner->shouldAutoSave(); }
-    bool isModified() const { G_TRACE; return m_owner->isModified(); }
-    bool isSaveAsAllowed() const { G_TRACE; return m_owner->isSaveAsAllowed(); }
-
-    //ReloadBehavior reloadBehavior(ChangeTrigger state, ChangeType type) const;
-    //bool reload(QString *errorString, ReloadFlag flag, ChangeType type) = 0;
-
-    void checkPermissions() { G_TRACE; m_owner->checkPermissions(); }
-
-    QJSValue autoSave(const QString &filePath)
-    {
-        G_TRACE;
-        QString errors;
-        if (m_owner->autoSave(&errors, filePath))
-        {
-            return QJSValue(true);
-        }
-        else
-        {
-            qDebug("%s", errors.toLatin1().data());
-            return QJSValue(false);
-        }
-    }
-
-    void setRestoredFrom(const QString &name) { G_TRACE; m_owner->setRestoredFrom(name); }
-    void removeAutoSaveFile() { G_TRACE; m_owner->removeAutoSaveFile(); }
-
-    bool hasWriteWarning() const { G_TRACE; return m_owner->hasWriteWarning(); }
-    void setWriteWarning(bool has) { G_TRACE; m_owner->setWriteWarning(has); }
-
-    //InfoBar *infoBar();
-
-private:
-    Core::IDocument* m_owner;
-};
-
-class GEditorManager : public GWrapper
-{
-    Q_OBJECT
-
-public:
-    GEditorManager(GContext gContext)
-        : GWrapper(gContext),
-          m_owner(Core::EditorManager::instance())
-    {
-        Q_ASSERT(m_owner);
-        G_TRACE;
-    }
-    ~GEditorManager() { G_TRACE; }
-
-    Core::EditorManager* owner() { return m_owner; }
-
-public slots:
-
-    QJSValue gOwner() { G_TRACE; return wrapObject(m_owner); }
-
-    //EditorToolBar *createToolBar(QWidget *parent = 0);
-
-    //QString splitLineNumber(QString *fileName);
-
-    // returns IEditor*
-    QJSValue openEditor(const QString &fileName, const QString &editorId = QString(), int flags = 0, bool *newEditor = 0)
-    {
-        G_TRACE;
-        return wrapObject(m_owner->openEditor(fileName, str2id(editorId), Core::EditorManager::OpenEditorFlags(flags), newEditor));
-    }
-
-    // returns IEditor*
-    QJSValue openEditorAt(const QString &fileName,  int line, int column = 0, const QString &editorId = QString(), int flags = 0, bool *newEditor = 0)
-    {
-        G_TRACE;
-        return wrapObject(m_owner->openEditorAt(fileName, line, column, str2id(editorId), Core::EditorManager::OpenEditorFlags(flags), newEditor));
-    }
-
-    // returns IEditor*
-    QJSValue openEditorWithContents(const QString &editorId, QString *titlePattern = 0, const QByteArray &contents = QByteArray(), int flags = 0)
-    {
-        G_TRACE;
-        return wrapObject(m_owner->openEditorWithContents(str2id(editorId), titlePattern, contents, Core::EditorManager::OpenEditorFlags(flags)));
-    }
-
-    bool openExternalEditor(const QString &fileName, const QString &editorId)
-    {
-        G_TRACE;
-        return m_owner->openExternalEditor(fileName, str2id(editorId));
-    }
-
-    QStringList getOpenFileNames()
-    {
-        G_TRACE;
-        return m_owner->getOpenFileNames();
-    }
-
-    QString getOpenWithEditorId(const QString &fileName, bool *isExternalEditor = 0)
-    {
-        G_TRACE;
-        return QString::fromLatin1(m_owner->getOpenWithEditorId(fileName, isExternalEditor).name());
-    }
-
-    JsExtensions::Internal::GDocument* currentDocument()
-    {
-        G_TRACE;
-        return new GDocument(m_gContext, m_owner->currentDocument());
-    }
-
-    // returns IEditor*
-    QJSValue currentEditor()
-    {
-        G_TRACE;
-        return wrapObject(m_owner->currentEditor());
-    }
-
-    QJSValue visibleEditors()
-    {
-        G_TRACE;
-        QList<Core::IEditor *> editors = m_owner->visibleEditors();
-        QJSValue array = m_gContext.jsEngine->newArray(editors.size());
-
-        quint32 i = 0;
-        foreach (Core::IEditor *editor, editors)
-            array.setProperty(i++, m_gContext.jsEngine->toScriptValue(editor));
-        return array;
-    }
-
-    QJSValue documents()
-    {
-        G_TRACE;
-        QList<Core::IDocument *> documents = m_owner->documentModel()->openedDocuments();
-
-        QJSValue array = m_gContext.jsEngine->newArray(documents.size());
-
-        for (quint32 i = 0; i < (quint32)documents.size(); ++i)
-        {
-            array.setProperty(i, m_gContext.jsEngine->newQObject(new GDocument(m_gContext, documents[i])));
-        }
-
-        return array;
-    }
-
-    void activateEditor(Core::IEditor *editor, int flags = 0)
-    {
-        G_TRACE;
-        m_owner->activateEditor(editor, Core::EditorManager::OpenEditorFlags(flags));
-    }
-
-    //void activateEditorForEntry(DocumentModel::Entry *entry, OpenEditorFlags flags = 0);
-    //IEditor *activateEditorForDocument(IDocument *document, OpenEditorFlags flags = 0);
-    //IEditor *activateEditorForDocument(Internal::EditorView *view, IDocument *document, OpenEditorFlags flags = 0);
-
-    //DocumentModel *documentModel();
-    //bool closeDocuments(const QList<Core::IDocument *> &documents, bool askAboutModifiedEditors = true);
-    //void closeEditor(DocumentModel::Entry *entry);
-    //void closeOtherEditors(Core::IDocument *document);
-
-    void addCurrentPositionToNavigationHistory(Core::IEditor *editor/* = 0*/, const QByteArray &saveState/* = QByteArray()*/)
-    {
-        G_TRACE;
-        m_owner->addCurrentPositionToNavigationHistory(editor, saveState);
-    }
-
-    void cutForwardNavigationHistory()
-    {
-        G_TRACE;
-        m_owner->cutForwardNavigationHistory();
-    }
-
-    bool saveEditor(Core::IEditor *editor)
-    {
-        G_TRACE;
-        if (!editor)
-            return false;
-
-        return m_owner->saveEditor(editor);
-    }
-
-    bool closeEditors(const QList<Core::IEditor *> &editorsToClose, bool askAboutModifiedEditors/* = true*/)
-    {
-        G_TRACE;
-        return m_owner->closeEditors(editorsToClose, askAboutModifiedEditors);
-    }
-
-    void closeEditor(Core::IEditor *editor, bool askAboutModifiedEditors/* = true*/)
-    {
-        G_TRACE;
-        m_owner->closeEditor(editor, askAboutModifiedEditors);
-    }
-
-    //MakeWritableResult makeFileWritable(IDocument *document);
-
-    QByteArray saveState() { G_TRACE; return m_owner->saveState(); }
-    bool restoreState(const QByteArray &state) { G_TRACE; return m_owner->restoreState(state); }
-
-    bool hasSplitter() { G_TRACE; return m_owner->hasSplitter(); }
-
-    void saveSettings() { G_TRACE; m_owner->saveSettings(); }
-    void readSettings() { G_TRACE; m_owner->readSettings(); }
-
-    //Internal::OpenEditorsWindow *windowPopup();
-    void showPopupOrSelectDocument() { G_TRACE; m_owner->showPopupOrSelectDocument(); }
-
-    void showEditorStatusBar(const QString &id,
-                           const QString &infoText,
-                           const QString &buttonText = QString(),
-                           QObject *object = 0, const char *member = 0)
-    {
-        G_TRACE;
-        m_owner->showEditorStatusBar(id, infoText, buttonText, object, member);
-    }
-
-    void hideEditorStatusBar(const QString &id) { G_TRACE; m_owner->hideEditorStatusBar(id); }
-
-    //EditorFactoryList editorFactories(const MimeType &mimeType, bool bestMatchOnly = true);
-    //ExternalEditorList externalEditors(const MimeType &mimeType, bool bestMatchOnly = true);
-
-    //void setReloadSetting(IDocument::ReloadSetting behavior);
-    //IDocument::ReloadSetting reloadSetting();
-
-    void setAutoSaveEnabled(bool enabled) { G_TRACE; m_owner->setAutoSaveEnabled(enabled); }
-    bool autoSaveEnabled() { G_TRACE; return m_owner->autoSaveEnabled(); }
-    void setAutoSaveInterval(int interval) { G_TRACE; m_owner->setAutoSaveInterval(interval); }
-    int autoSaveInterval() { G_TRACE; return m_owner->autoSaveInterval(); }
-    bool isAutoSaveFile(const QString &fileName) { G_TRACE; return m_owner->isAutoSaveFile(fileName); }
-
-//    QString defaultTextCodec() { return m_owner->defaultTextCodec(); }
-
-    qint64 maxTextFileSize() { G_TRACE; return m_owner->maxTextFileSize(); }
-
-    void setWindowTitleAddition(const QString &addition) { G_TRACE; m_owner->setWindowTitleAddition(addition); }
-    QString windowTitleAddition() { G_TRACE; return m_owner->windowTitleAddition(); }
-
-    void setWindowTitleVcsTopic(const QString &topic) { G_TRACE; m_owner->setWindowTitleVcsTopic(topic); }
-    QString windowTitleVcsTopic() { G_TRACE; return m_owner->windowTitleVcsTopic(); }
-
-    //void addSaveAndCloseEditorActions(QMenu *contextMenu, DocumentModel::Entry *entry);
-    //void addNativeDirActions(QMenu *contextMenu, DocumentModel::Entry *entry);
-
-    bool closeAllEditors(bool askAboutModifiedEditors/* = true*/) { G_TRACE; return m_owner->closeAllEditors(askAboutModifiedEditors); }
-    void closeAllEditorsExceptVisible() { G_TRACE; m_owner->closeAllEditorsExceptVisible(); }
-
-    bool saveDocument(GDocument *documentParam) { G_TRACE; return m_owner->saveDocument(documentParam->owner()); }
-    bool saveDocumentAs(GDocument *documentParam) { G_TRACE; return m_owner->saveDocumentAs(documentParam->owner()); }
-    void revertToSaved() { G_TRACE; m_owner->revertToSaved(); }
-    void revertToSaved2(GDocument *document) { G_TRACE; m_owner->revertToSaved(document->owner()); }
-    void closeEditor() { G_TRACE; m_owner->closeEditor(); }
-    void closeOtherEditors() { G_TRACE; m_owner->closeOtherEditors(); }
-    void doEscapeKeyFocusMoveMagic() { G_TRACE; m_owner->doEscapeKeyFocusMoveMagic(); }
-
-private:
-    Core::EditorManager* m_owner;
 };
 
 class GModeManager : public GWrapper
@@ -830,9 +503,6 @@ public:
     QKeySequence activationSequence() const { return QKeySequence(m_activationSequence); }
 
     Core::NavigationView createWidget();
-
-    //void saveSettings(int position, QWidget *widget);
-    //void restoreSettings(int position, QWidget *widget);
 
 private:
     JsPlugin* m_owner;
