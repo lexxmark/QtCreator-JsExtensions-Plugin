@@ -22,7 +22,7 @@ function createActionToolButton(actionName) {
     // tune button
     bttn.toolButtonStyle = 2;
     bttn.autoRaise = true;
-    bttn.styleSheet = "QToolButton {color: white; }";
+    bttn.styleSheet = "QToolButton {color: black; }";
 
     // disable button's minimum width
     bttn.sizePolicy = jepAPI.sizePolicy(13, 0, 1);

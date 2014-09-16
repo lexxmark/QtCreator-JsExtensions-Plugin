@@ -25,27 +25,60 @@ JepDialog {
         anchors.fill: parent
         anchors.margins: 10
 
-        ScrollView {
-            //implicitWidth: 300
-            Layout.fillWidth: true
-            //height: parent.height
-            Layout.fillHeight: true
+        ColumnLayout {
 
-            ListView {
-                id: cmdList
-                anchors.fill: parent
-                focus: true
+            RowLayout {
+                id: sm
 
-                model: ListModel {
-                    id: cmdModel
+                TextField {
+                    id: filter
+                    placeholderText: "Enter text to filter"
+                    Layout.fillWidth: true
+                    implicitWidth: 200
                 }
 
-                delegate: CheckBox {
-                    checked: use
-                    text: name
+                Button {
+                    text: "Filter"
+                    //enabled: filter.text.length !== 0
+                    onClicked: {
+                        root.fillSettingsActions();
+                        root.fillCommands();
+                    }
+                }
+            }
 
-                    onCheckedChanged: {
-                        cmdModel.get(index)["use"] = checked;
+            Item {
+                id: views
+
+                //width: sm.width
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                implicitHeight: 200
+
+                ScrollView {
+                    //implicitWidth: 300
+                    //Layout.fillWidth: true
+                    //height: parent.height
+                    //Layout.fillHeight: true
+                    anchors.fill: parent
+
+                    ListView {
+                        id: cmdList
+                        anchors.fill: parent
+                        focus: true
+
+                        model: ListModel {
+                            id: cmdModel
+                        }
+
+                        delegate: CheckBox {
+                            checked: use
+                            text: name
+
+                            onCheckedChanged: {
+                                cmdModel.get(index)["use"] = checked;
+                            }
+                        }
                     }
                 }
             }
@@ -77,10 +110,32 @@ JepDialog {
             return;
         }
 
+        // remove duplicates
+        settings.actions = settings.actions.sort().filter(function(item, pos) {
+            return !pos || item !== settings.actions[pos - 1];
+        });
+
+        root.fillCommands();
+    }
+
+    Component.onDestruction: {
+        if (status === sAccepted) {
+            fillSettingsActions();
+        }
+    }
+
+    function fillCommands() {
         var commands = actionManager.commands();
         var cmds = [];
+        var filterText = filter.text.toLowerCase();
+        var useFilter = filterText.length !== 0;
+        jepAPI.debug(filterText);
         commands.map(function (command) {
             var id = command.id();
+
+            if (useFilter && (id.toLowerCase().search(filterText) === -1))
+                return;
+
             var item = {
                 name: id,
                 use: (settings.actions.indexOf(id) != -1)
@@ -100,17 +155,16 @@ JepDialog {
         cmdModel.append(cmds);
     }
 
-    Component.onDestruction: {
-        if (status === sAccepted) {
-            var newActions = [];
-            for (var i = 0, n = cmdModel.count; i < n; ++i) {
-                var cmd = cmdModel.get(i);
-                if (cmd["use"])
-                    newActions.push(cmd["name"]);
-            }
-            settings.actions = newActions;
-            settings.save();
+    function fillSettingsActions() {
+        for (var i = 0, n = cmdModel.count; i < n; ++i) {
+            var cmd = cmdModel.get(i);
+            var actionIndex = settings.actions.indexOf(cmd["name"]);
+            var hasCmd = (actionIndex !== -1);
+            if (cmd["use"] && !hasCmd)
+                settings.actions.push(cmd["name"]);
+            else if (!cmd["use"] && hasCmd)
+                settings.actions.splice(actionIndex, 1);
         }
+        settings.save();
     }
 }
-
